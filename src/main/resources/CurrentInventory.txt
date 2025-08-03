@@ -1,0 +1,17 @@
+Carrot - 50
+Potato - 30
+Tomato - 20
+Cabbage - 15
+Onion - 25
+Cucumber - 10
+Chicken - 5
+Fish - 8
+Egg - 12
+Milk - 20
+Bread - 18
+Cheese - 22
+Mutton - 7
+Rice - 40
+Pasta - 35
+Noodles - 28
+

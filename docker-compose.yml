@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: restaurant_db
+    environment:
+      POSTGRES_USER: restaurant_user
+      POSTGRES_PASSWORD: restaurant_password
+      POSTGRES_DB: restaurant_management
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    networks:
+      - restaurant_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U restaurant_user -d restaurant_management"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: postgres -c 'max_connections=200' -c 'shared_buffers=256MB'
+
+  # Restaurant Management Application
+  restaurant_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: restaurant_management_app
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=restaurant_management
+      - DB_USER=restaurant_user
+      - DB_PASSWORD=restaurant_password
+      - JAVA_OPTS=-Xmx512m -Xms256m
+      - TERM=xterm
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - restaurant_network
+    restart: unless-stopped
+    stdin_open: true  # docker run -i
+    tty: true         # docker run -t
+    volumes:
+      - app_logs:/app/logs
+      - ./src:/app/src:ro  # Mount source code for easy reference
+
+  # Optional: PgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: restaurant_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@restaurant.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - restaurant_network
+    restart: unless-stopped
+    profiles:
+      - admin
+
+networks:
+  restaurant_network:
+    driver: bridge
+    name: restaurant_network
+
+volumes:
+  postgres_data:
+    driver: local
+  app_logs:
+    driver: local
