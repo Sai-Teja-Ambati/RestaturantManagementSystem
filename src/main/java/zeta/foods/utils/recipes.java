@@ -1,5 +1,6 @@
 package zeta.foods.utils;
 
+import zeta.foods.model.Recipe;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -594,6 +595,24 @@ public class recipes {
         ));
     }
     
+    /**
+     * Get a Recipe object for a specific menu item
+     *
+     * @param dishName The name of the dish
+     * @return Recipe object containing ingredients and quantities, or null if recipe not found
+     */
+    public static Recipe getRecipe(String dishName) {
+        Map<String, Integer> ingredients = recipeDetails.get(dishName);
+        if (ingredients == null) {
+            return null;
+        }
+
+        Recipe recipe = new Recipe();
+        recipe.setName(dishName);
+        recipe.setIngredients(new HashMap<>(ingredients));
+        return recipe;
+    }
+
     private static void addRecipe(String item, Map<String, Integer> ingredients) {
         recipeDetails.put(item, new HashMap<>(ingredients));
     }

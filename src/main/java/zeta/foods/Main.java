@@ -2,10 +2,14 @@ package zeta.foods;
 
 import zeta.foods.model.Order;
 import zeta.foods.model.User;
+import zeta.foods.service.AdminService;
 import zeta.foods.service.AuthService;
 import zeta.foods.service.CustomerService;
+import zeta.foods.service.WaiterService;
+import zeta.foods.service.impl.AdminServiceImpl;
 import zeta.foods.service.impl.CustomerServiceImpl;
 import zeta.foods.service.impl.PostgresAuthServiceImpl;
+import zeta.foods.service.impl.WaiterServiceImpl;
 import zeta.foods.simulation.AuthSimulation;
 import zeta.foods.utils.DatabaseUtil;
 import zeta.foods.utils.menu;
@@ -20,6 +24,8 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
     private static AuthService authService;
     private static CustomerService customerService;
+    private static AdminService adminService;
+    private static WaiterService waiterService;
 
     public static void main(String[] args) {
         logger.info("Starting Restaurant Management System...");
@@ -48,6 +54,8 @@ public class Main {
             // Initialize services
             authService = new PostgresAuthServiceImpl();
             customerService = new CustomerServiceImpl();
+            adminService = new AdminServiceImpl();
+            waiterService = new WaiterServiceImpl();
             logger.info("Services initialized");
 
             logger.info("Restaurant Management System is running successfully!");
@@ -78,11 +86,6 @@ public class Main {
 
     private static void startLoginProcess() {
         logger.info("=== Restaurant Management System Login ===");
-        logger.info("Available test accounts:");
-        logger.info("Admin: ambatisaiteja123@gmail.com (password: admin123)");
-        logger.info("Waiters: waiter1@restaurant.com through waiter5@restaurant.com (password: 12345678)");
-        logger.info("Customer: customer1@example.com (password: 12345678)");
-        logger.info("Type 'simulate' to run automatic login simulation");
         logger.info("Type 'exit' to quit the application");
 
         try {
@@ -111,8 +114,7 @@ public class Main {
                     // Handle menu selection based on user role
                     logger.info("Selected option: {}", input);
 
-                    // Process customer menu options
-                    if (user.isCustomer()) {
+                    if (user.getRole().equalsIgnoreCase("customer")) {
                         switch (input) {
                             case "1":
                                 customerService.displayRestaurantMenu(scanner);
@@ -122,6 +124,38 @@ public class Main {
                                 break;
                             case "3":
                                 viewOrderStatus(user, scanner);
+                                break;
+                            case "4":
+//                                CustomerService.bookTable(user, scanner);
+                            default:
+                                System.out.println("Invalid option. Please try again.");
+                                break;
+                        }
+                    } else if (user.getRole().equalsIgnoreCase("waiter")) {
+                        switch (input) {
+                            case "1":
+                                takeNewOrderAsWaiter(scanner);
+                                break;
+                            default:
+                                System.out.println("Invalid option. Please try again.");
+                                break;
+                        }
+                    } else if (user.getRole().equalsIgnoreCase("admin")) {
+                        switch (input) {
+                            case "1":
+                                System.out.println("Manage Users - Feature will be implemented in future updates.");
+                                break;
+                            case "2":
+                                System.out.println("View System Reports - Feature will be implemented in future updates.");
+                                break;
+                            case "3":
+                                fetchCurrentInventory();
+                                break;
+                            case "4":
+                                restoreCurrentInventory();
+                                break;
+                            case "5":
+                                System.out.println("Manage Menu Items - Feature will be implemented in future updates.");
                                 break;
                             default:
                                 System.out.println("Invalid option. Please try again.");
@@ -260,5 +294,53 @@ public class Main {
 
         System.out.println("\nPress Enter to return to main menu...");
         scanner.nextLine();
+    }
+
+    /**
+     * Fetch and display the current inventory
+     */
+    private static void fetchCurrentInventory() {
+        logger.info("Fetching current inventory data");
+        System.out.println("\n=== Current Inventory ===");
+
+        String inventoryData = adminService.fetchCurrentInventory();
+        System.out.println(inventoryData);
+
+        System.out.println("Current inventory data has been displayed.");
+    }
+
+    /**
+     * Restore the current inventory from the main inventory
+     */
+    private static void restoreCurrentInventory() {
+        logger.info("Restoring current inventory from main inventory");
+        System.out.println("\n=== Restoring Inventory ===");
+
+        boolean success = adminService.restoreCurrentInventory();
+
+        if (success) {
+            System.out.println("Inventory has been successfully restored from the main inventory.");
+        } else {
+            System.out.println("Failed to restore inventory. Please check the logs for details.");
+        }
+    }
+
+    /**
+     * Take a new order as a waiter
+     * @param scanner Scanner for user input
+     */
+    private static void takeNewOrderAsWaiter(Scanner scanner) {
+        logger.info("Taking new order as waiter");
+
+        // Use the WaiterService to handle the order taking process
+        Order order = waiterService.takeNewOrder(scanner);
+
+        if (order != null) {
+            logger.info("Order #{} successfully created by waiter", order.getOrderId());
+            System.out.println("\nOrder #" + order.getOrderId() + " has been successfully created.");
+        } else {
+            logger.info("Order creation cancelled or failed");
+            System.out.println("\nOrder creation was cancelled or failed.");
+        }
     }
 }

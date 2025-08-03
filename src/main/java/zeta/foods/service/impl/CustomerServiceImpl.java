@@ -6,9 +6,12 @@ import zeta.foods.model.Order;
 import zeta.foods.model.OrderItem;
 import zeta.foods.model.OrderStatus;
 import zeta.foods.model.User;
+import zeta.foods.model.Recipe;
 import zeta.foods.service.CustomerService;
+import zeta.foods.utils.CurrentInventory;
 import zeta.foods.utils.DatabaseUtil;
 import zeta.foods.utils.menu;
+import zeta.foods.utils.recipes;
 
 import java.sql.*;
 import java.time.format.DateTimeFormatter;
@@ -23,47 +26,89 @@ import org.json.JSONObject;
 public class CustomerServiceImpl implements CustomerService {
     private static final Logger logger = LoggerFactory.getLogger(CustomerServiceImpl.class);
 
-    // In-memory cache of orders (for performance)
     private static final Map<String, Order> orders = new HashMap<>();
     private static final Map<Long, List<Order>> customerOrders = new HashMap<>();
 
     @Override
     public Order placeOrder(User user) {
         Order order = new Order();
-        order.setCustomerId(user.getId());
+
+        // Handle case where user ID might be null (for temporary users created by waiters)
+        if (user.getId() != null) {
+            order.setCustomerId(user.getId());
+        } else {
+            // For walk-in customers or when waiter creates an order without a registered user
+            order.setCustomerId(0L);  // Use 0 to indicate a walk-in customer or temporary user
+        }
+
         order.setCustomerName(user.getUsername());
 
-        // Store order in memory cache
-        if (!customerOrders.containsKey(user.getId())) {
-            customerOrders.put(user.getId(), new ArrayList<>());
-        }
-        customerOrders.get(user.getId()).add(order);
-        orders.put(order.getOrderId(), order);
-
+        boolean dbSaveSuccessful = false;
         // Save order to database (initially empty)
         try (Connection conn = DatabaseUtil.getConnection()) {
+            // Use transaction to ensure consistency
+            conn.setAutoCommit(false);
+
             String sql = "INSERT INTO orders (order_id, customer_id, items, bill_subtotal, order_status) VALUES (?, ?, ?::jsonb, ?, ?)";
 
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, order.getOrderId());
-                stmt.setLong(2, user.getId());
+
+                // If user ID is null, use 0 for customer_id in database
+                if (user.getId() != null) {
+                    stmt.setLong(2, user.getId());
+                } else {
+                    stmt.setLong(2, 0L);
+                }
+
                 stmt.setString(3, "[]"); // Empty JSON array for items initially
                 stmt.setDouble(4, 0.0); // Initial subtotal is 0
                 stmt.setString(5, order.getStatus().toString());
 
                 int rowsAffected = stmt.executeUpdate();
+
                 if (rowsAffected > 0) {
-                    logger.info("Order {} saved to database", order.getOrderId());
+                    // Verify the order was actually saved
+                    try (PreparedStatement verifyStmt = conn.prepareStatement("SELECT COUNT(*) FROM orders WHERE order_id = ?")) {
+                        verifyStmt.setString(1, order.getOrderId());
+                        try (ResultSet rs = verifyStmt.executeQuery()) {
+                            if (rs.next() && rs.getInt(1) > 0) {
+                                // Order exists in the database
+                                conn.commit();
+                                dbSaveSuccessful = true;
+                                logger.info("Order {} successfully saved to database and verified", order.getOrderId());
+                            } else {
+                                conn.rollback();
+                                logger.error("Order {} insert appeared successful but verification failed", order.getOrderId());
+                            }
+                        }
+                    }
                 } else {
-                    logger.error("Failed to save order {} to database", order.getOrderId());
+                    conn.rollback();
+                    logger.error("Failed to save order {} to database (no rows affected)", order.getOrderId());
                 }
             }
         } catch (SQLException e) {
-            logger.error("Database error while saving order: {}", e.getMessage(), e);
+            logger.error("Database error while saving order {}: {}", order.getOrderId(), e.getMessage(), e);
         }
 
-        logger.info("Created new order with ID: {} for customer: {}", order.getOrderId(), user.getUsername());
-        return order;
+        // Only store the order in memory if database save was successful
+        if (dbSaveSuccessful) {
+            // Store order in memory cache
+            if (user.getId() != null) {
+                if (!customerOrders.containsKey(user.getId())) {
+                    customerOrders.put(user.getId(), new ArrayList<>());
+                }
+                customerOrders.get(user.getId()).add(order);
+            }
+            orders.put(order.getOrderId(), order);
+
+            logger.info("Created new order with ID: {} for customer: {}", order.getOrderId(), user.getUsername());
+            return order;
+        } else {
+            logger.error("Order creation failed due to database error. Order ID: {}", order.getOrderId());
+            return null;
+        }
     }
 
     @Override
@@ -203,6 +248,18 @@ public class CustomerServiceImpl implements CustomerService {
         // Parse price (remove "Rs." prefix)
         double price = menu.getPriceValue(priceStr);
 
+        // Check if we have the necessary ingredients for this item
+        OrderItem tempItem = new OrderItem(category, itemName, quantity, price);
+        List<OrderItem> itemsToCheck = new ArrayList<>();
+        itemsToCheck.add(tempItem);
+
+        // Check ingredient availability before adding to order
+        if (!CurrentInventory.checkIngredientsAvailability(itemsToCheck)) {
+            logger.warn("Cannot add {} to order: insufficient ingredients", itemName);
+            System.out.println("Sorry, we don't have enough ingredients to prepare " + itemName + " at this time.");
+            return false;
+        }
+
         // Add item to order
         OrderItem item = new OrderItem(category, itemName, quantity, price);
         order.addItem(item);
@@ -211,6 +268,19 @@ public class CustomerServiceImpl implements CustomerService {
         try (Connection conn = DatabaseUtil.getConnection()) {
             // First, get all existing items for this order
             String itemsJson = createItemsJson(order);
+            logger.debug("Order JSON for update: {}", itemsJson);
+            logger.debug("Order subtotal: {}", order.getTotalAmount());
+
+            // Check if order exists in database
+            try (PreparedStatement checkStmt = conn.prepareStatement("SELECT COUNT(*) FROM orders WHERE order_id = ?")) {
+                checkStmt.setString(1, orderId);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) == 0) {
+                        logger.error("Order {} does not exist in database", orderId);
+                        return false;
+                    }
+                }
+            }
 
             String sql = "UPDATE orders SET items = ?::jsonb, bill_subtotal = ? WHERE order_id = ?";
 
@@ -219,17 +289,20 @@ public class CustomerServiceImpl implements CustomerService {
                 stmt.setDouble(2, order.getTotalAmount());
                 stmt.setString(3, orderId);
 
+                logger.info("Executing update for order {} with JSON: {}", orderId, itemsJson);
                 int rowsUpdated = stmt.executeUpdate();
                 if (rowsUpdated == 0) {
-                    logger.error("Failed to update order {} in database", orderId);
+                    logger.error("Failed to update order {} in database (No rows affected)", orderId);
                     return false;
                 }
             }
         } catch (SQLException e) {
-            logger.error("Database error while updating order: {}", e.getMessage(), e);
+            logger.error("Database error while updating order {}: {}", orderId, e.getMessage(), e);
             return false;
         }
 
+        // Deduct ingredients from current inventory
+        CurrentInventory.useIngredientsForOrder(itemsToCheck);
         logger.info("Added item to order {}: {} x{} ({})",
                 orderId, itemName, quantity, priceStr);
         return true;
@@ -539,6 +612,7 @@ public class CustomerServiceImpl implements CustomerService {
             logger.error("Database error while generating bill: {}", e.getMessage(), e);
         }
 
+        // Build bill content
         StringBuilder bill = new StringBuilder();
         bill.append("\n==========================================\n");
         bill.append("             RESTAURANT BILL              \n");

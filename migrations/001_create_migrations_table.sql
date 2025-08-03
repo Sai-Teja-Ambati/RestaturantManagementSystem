@@ -81,10 +81,18 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create trigger to automatically calculate taxes and total before insert
-CREATE TRIGGER calculate_order_totals
-BEFORE INSERT OR UPDATE ON orders
-FOR EACH ROW
-EXECUTE FUNCTION calculate_taxes_and_total();
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_trigger
+        WHERE tgname = 'calculate_order_totals'
+    ) THEN
+        CREATE TRIGGER calculate_order_totals
+        BEFORE INSERT OR UPDATE ON orders
+        FOR EACH ROW
+        EXECUTE FUNCTION calculate_taxes_and_total();
+    END IF;
+END $$;
 
 INSERT INTO orders (order_id, customer_id, items, bill_subtotal)
 VALUES (
@@ -96,3 +104,25 @@ VALUES (
     ]'::JSONB,
     349.00
 );
+
+-- Create tables table for tracking restaurant tables
+CREATE TABLE IF NOT EXISTS tables (
+    id SERIAL PRIMARY KEY,
+    table_number INT UNIQUE NOT NULL,
+    is_occupied BOOLEAN DEFAULT FALSE,
+    is_served BOOLEAN DEFAULT FALSE,
+    booking_start_time TIMESTAMP,
+    booking_end_time TIMESTAMP
+);
+
+-- Create order_tables table for linking orders to tables
+CREATE TABLE IF NOT EXISTS order_tables (
+    id SERIAL PRIMARY KEY,
+    order_id BIGINT NOT NULL REFERENCES orders(id),
+    table_id INT NOT NULL REFERENCES tables(id),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Add index for faster lookups
+CREATE INDEX IF NOT EXISTS idx_order_tables_order_id ON order_tables(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_tables_table_id ON order_tables(table_id);
