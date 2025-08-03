@@ -36,6 +36,16 @@ public interface AuthService {
     User createUser(String username, String email, String password, String role);
 
     /**
+     * Register a new user account (primarily for customers)
+     * @param username Username
+     * @param email Email
+     * @param password Password
+     * @param role User role
+     * @return User if registration successful, null otherwise
+     */
+    User registerUser(String username, String email, String password, String role);
+
+    /**
      * Updates the last login time for a user
      * @param userId The user ID
      * @return true if successful, false otherwise

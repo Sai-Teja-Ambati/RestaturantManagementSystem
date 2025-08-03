@@ -1,12 +1,13 @@
 package zeta.foods.utils;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeMap;
 
 public class menu {
     // TreeMap to store menu items by category
-    // Structure: <Food Category, List of Items in that Category>
-    public static final TreeMap<String, ArrayList<String>> menuItems = new TreeMap<>();
+    // Structure: <Food Category, Map<Item Name, Price as String>>
+    public static final TreeMap<String, Map<String, String>> menuItems = new TreeMap<>();
 
     static {
         // Initialize menu categories and items
@@ -15,101 +16,113 @@ public class menu {
 
     private static void initializeMenu() {
         // Veg Starters
-        ArrayList<String> vegStarters = new ArrayList<>();
-        vegStarters.add("Paneer Tikka");
-        vegStarters.add("Veg Spring Rolls");
-        vegStarters.add("Gobi Manchurian");
-        vegStarters.add("Hara Bhara Kebab");
-        vegStarters.add("Aloo Tikki");
-        vegStarters.add("Crispy Corn");
-        vegStarters.add("Veg Seekh Kebab");
+        Map<String, String> vegStarters = new HashMap<>();
+        vegStarters.put("Paneer Tikka", "Rs.249");
+        vegStarters.put("Veg Spring Rolls", "Rs.199");
+        vegStarters.put("Gobi Manchurian", "Rs.189");
+        vegStarters.put("Hara Bhara Kebab", "Rs.219");
+        vegStarters.put("Aloo Tikki", "Rs.149");
+        vegStarters.put("Crispy Corn", "Rs.179");
+        vegStarters.put("Veg Seekh Kebab", "Rs.229");
         menuItems.put("Veg Starters", vegStarters);
 
         // Non-Veg Starters
-        ArrayList<String> nonVegStarters = new ArrayList<>();
-        nonVegStarters.add("Chicken Tikka");
-        nonVegStarters.add("Fish Amritsari");
-        nonVegStarters.add("Mutton Seekh Kebab");
-        nonVegStarters.add("Chicken 65");
-        nonVegStarters.add("Tandoori Prawns");
-        nonVegStarters.add("Chilli Chicken");
-        nonVegStarters.add("Drums of Heaven");
+        Map<String, String> nonVegStarters = new HashMap<>();
+        nonVegStarters.put("Chicken Tikka", "Rs.299");
+        nonVegStarters.put("Fish Amritsari", "Rs.329");
+        nonVegStarters.put("Mutton Seekh Kebab", "Rs.349");
+        nonVegStarters.put("Chicken 65", "Rs.279");
+        nonVegStarters.put("Tandoori Prawns", "Rs.399");
+        nonVegStarters.put("Chilli Chicken", "Rs.289");
+        nonVegStarters.put("Drums of Heaven", "Rs.319");
         menuItems.put("Non-Veg Starters", nonVegStarters);
 
         // Indian Breads
-        ArrayList<String> indianBreads = new ArrayList<>();
-        indianBreads.add("Naan");
-        indianBreads.add("Butter Naan");
-        indianBreads.add("Garlic Naan");
-        indianBreads.add("Roti");
-        indianBreads.add("Butter Roti");
-        indianBreads.add("Paratha");
-        indianBreads.add("Kulcha");
+        Map<String, String> indianBreads = new HashMap<>();
+        indianBreads.put("Naan", "Rs.40");
+        indianBreads.put("Butter Naan", "Rs.50");
+        indianBreads.put("Garlic Naan", "Rs.60");
+        indianBreads.put("Roti", "Rs.25");
+        indianBreads.put("Butter Roti", "Rs.35");
+        indianBreads.put("Paratha", "Rs.45");
+        indianBreads.put("Kulcha", "Rs.55");
         menuItems.put("Indian Breads", indianBreads);
 
         // Veg Gravies
-        ArrayList<String> vegGravies = new ArrayList<>();
-        vegGravies.add("Paneer Butter Masala");
-        vegGravies.add("Malai Kofta");
-        vegGravies.add("Palak Paneer");
-        vegGravies.add("Dal Makhani");
-        vegGravies.add("Kadai Paneer");
-        vegGravies.add("Chana Masala");
-        vegGravies.add("Veg Kolhapuri");
+        Map<String, String> vegGravies = new HashMap<>();
+        vegGravies.put("Paneer Butter Masala", "Rs.249");
+        vegGravies.put("Malai Kofta", "Rs.259");
+        vegGravies.put("Palak Paneer", "Rs.239");
+        vegGravies.put("Dal Makhani", "Rs.199");
+        vegGravies.put("Kadai Paneer", "Rs.249");
+        vegGravies.put("Chana Masala", "Rs.189");
+        vegGravies.put("Veg Kolhapuri", "Rs.229");
         menuItems.put("Veg Gravies", vegGravies);
 
         // Non-Veg Gravies
-        ArrayList<String> nonVegGravies = new ArrayList<>();
-        nonVegGravies.add("Butter Chicken");
-        nonVegGravies.add("Chicken Curry");
-        nonVegGravies.add("Mutton Rogan Josh");
-        nonVegGravies.add("Chicken Tikka Masala");
-        nonVegGravies.add("Fish Curry");
-        nonVegGravies.add("Prawn Masala");
-        nonVegGravies.add("Chicken Korma");
+        Map<String, String> nonVegGravies = new HashMap<>();
+        nonVegGravies.put("Butter Chicken", "Rs.299");
+        nonVegGravies.put("Chicken Curry", "Rs.269");
+        nonVegGravies.put("Mutton Rogan Josh", "Rs.349");
+        nonVegGravies.put("Chicken Tikka Masala", "Rs.289");
+        nonVegGravies.put("Fish Curry", "Rs.319");
+        nonVegGravies.put("Prawn Masala", "Rs.359");
+        nonVegGravies.put("Chicken Korma", "Rs.299");
         menuItems.put("Non-Veg Gravies", nonVegGravies);
 
         // Biryani
-        ArrayList<String> biryanis = new ArrayList<>();
-        biryanis.add("Chicken Biryani");
-        biryanis.add("Mutton Biryani");
-        biryanis.add("Veg Biryani");
-        biryanis.add("Prawn Biryani");
-        biryanis.add("Egg Biryani");
-        biryanis.add("Hyderabadi Biryani");
-        biryanis.add("Lucknowi Biryani");
+        Map<String, String> biryanis = new HashMap<>();
+        biryanis.put("Chicken Biryani", "Rs.279");
+        biryanis.put("Mutton Biryani", "Rs.329");
+        biryanis.put("Veg Biryani", "Rs.229");
+        biryanis.put("Prawn Biryani", "Rs.349");
+        biryanis.put("Egg Biryani", "Rs.249");
+        biryanis.put("Hyderabadi Biryani", "Rs.299");
+        biryanis.put("Lucknowi Biryani", "Rs.319");
         menuItems.put("Biryanis", biryanis);
 
         // Fried Rice & Noodles
-        ArrayList<String> friedRiceNoodles = new ArrayList<>();
-        friedRiceNoodles.add("Veg Fried Rice");
-        friedRiceNoodles.add("Chicken Fried Rice");
-        friedRiceNoodles.add("Schezwan Fried Rice");
-        friedRiceNoodles.add("Hakka Noodles");
-        friedRiceNoodles.add("Singapore Noodles");
-        friedRiceNoodles.add("Chilli Garlic Noodles");
-        friedRiceNoodles.add("Triple Schezwan Rice");
+        Map<String, String> friedRiceNoodles = new HashMap<>();
+        friedRiceNoodles.put("Veg Fried Rice", "Rs.189");
+        friedRiceNoodles.put("Chicken Fried Rice", "Rs.219");
+        friedRiceNoodles.put("Schezwan Fried Rice", "Rs.199");
+        friedRiceNoodles.put("Hakka Noodles", "Rs.179");
+        friedRiceNoodles.put("Singapore Noodles", "Rs.199");
+        friedRiceNoodles.put("Chilli Garlic Noodles", "Rs.189");
+        friedRiceNoodles.put("Triple Schezwan Rice", "Rs.249");
         menuItems.put("Fried Rice & Noodles", friedRiceNoodles);
 
         // Desserts
-        ArrayList<String> desserts = new ArrayList<>();
-        desserts.add("Gulab Jamun");
-        desserts.add("Rasmalai");
-        desserts.add("Kulfi");
-        desserts.add("Ice Cream");
-        desserts.add("Gajar Ka Halwa");
-        desserts.add("Jalebi");
-        desserts.add("Rasgulla");
+        Map<String, String> desserts = new HashMap<>();
+        desserts.put("Gulab Jamun", "Rs.99");
+        desserts.put("Rasmalai", "Rs.129");
+        desserts.put("Kulfi", "Rs.89");
+        desserts.put("Ice Cream", "Rs.79");
+        desserts.put("Gajar Ka Halwa", "Rs.119");
+        desserts.put("Jalebi", "Rs.89");
         menuItems.put("Desserts", desserts);
     }
 
-    // Method to get all menu items
-    public static TreeMap<String, ArrayList<String>> getMenuItems() {
-        return menuItems;
+    // Method to get price of a specific item
+    public static String getItemPrice(String category, String itemName) {
+        Map<String, String> categoryItems = menuItems.get(category);
+        if (categoryItems != null) {
+            return categoryItems.get(itemName);
+        }
+        return null;
     }
 
-    // Method to get items by category
-    public static ArrayList<String> getItemsByCategory(String category) {
+    // Method to get all items in a category
+    public static Map<String, String> getCategoryItems(String category) {
         return menuItems.get(category);
+    }
+
+    // Helper method to extract numeric price value if needed for calculations
+    public static int getPriceValue(String priceWithRs) {
+        if (priceWithRs == null || priceWithRs.isEmpty()) {
+            return 0;
+        }
+        // Remove "Rs." prefix and parse to int
+        return Integer.parseInt(priceWithRs.substring(3));
     }
 }

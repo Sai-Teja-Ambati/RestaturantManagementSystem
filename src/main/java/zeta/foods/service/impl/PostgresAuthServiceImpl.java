@@ -71,8 +71,8 @@ public class PostgresAuthServiceImpl implements AuthService {
             }
 
             // Now try the full authentication query
-//            String debugQuery = "SELECT * FROM users WHERE email = '" + email + "' AND password = '" + password + "'";
-            String debugQuery = "SELECT * FROM users WHERE email = 'ambatisaiteja123@gmail.com' AND password = 'admin123'";
+            String debugQuery = "SELECT * FROM users WHERE email = '" + email + "' AND password = '" + password + "'";
+//            String debugQuery = "SELECT * FROM users WHERE email = 'ambatisaiteja123@gmail.com' AND password = 'admin123'";
             logger.info("Executing direct query: {}", debugQuery);
 
 
@@ -137,75 +137,190 @@ public class PostgresAuthServiceImpl implements AuthService {
 
         // Print a visual separator to make the prompt more visible
         System.out.println("\n*************************************");
-        System.out.println("*          LOGIN PROMPT             *");
+        System.out.println("*          WELCOME                  *");
         System.out.println("*************************************\n");
+        System.out.println("1. Login");
+        System.out.println("2. Sign Up (New Customer)");
+        System.out.println("0. Exit");
+        System.out.print("\nSelect an option: ");
+        
+        Scanner scanner = new Scanner(System.in);
+        String option = scanner.nextLine().trim();
+        
+        switch (option) {
+            case "1":
+                // Login process
+                while (attempts < MAX_ATTEMPTS && authenticatedUser == null) {
+                    try {
+                        String email = null;
+                        String password = null;
 
-        while (attempts < MAX_ATTEMPTS && authenticatedUser == null) {
-            try {
-                String email = null;
-                String password = null;
+                        // Try to use console if available (better for password input)
+                        if (System.console() != null) {
+                            System.out.print("\nEnter email: ");
+                            email = System.console().readLine();
+                            System.out.print("Enter password: ");
+                            password = new String(System.console().readLine());
+                        } else {
+                            // Fall back to Scanner with flush to ensure prompt is visible
+                            System.out.print("\nEnter email: ");
+                            System.out.flush();
+                            email = scanner.nextLine().trim();
 
-                // Try to use console if available (better for password input)
-                if (System.console() != null) {
-                    System.out.print("Enter email: ");
-                    email = System.console().readLine();
-                    System.out.print("Enter password: ");
-                    password = new String(System.console().readLine());
-                } else {
-                    // Fall back to Scanner with flush to ensure prompt is visible
-                    Scanner scanner = new Scanner(System.in);
-                    System.out.print("Enter email: ");
-                    System.out.flush();
-                    email = scanner.nextLine().trim();
+                            System.out.print("Enter password: ");
+                            System.out.flush();
+                            password = scanner.nextLine().trim();
+                        }
 
-                    System.out.print("Enter password: ");
-                    System.out.flush();
-                    password = scanner.nextLine().trim();
-                }
+                        if (email == null || email.isEmpty()) {
+                            System.out.println("Email cannot be empty. Please try again.");
+                            continue;
+                        }
 
-                if (email == null || email.isEmpty()) {
-                    System.out.println("Email cannot be empty. Please try again.");
-                    continue;
-                }
+                        // Handle special commands
+                        if ("exit".equalsIgnoreCase(email)) {
+                            logger.info("Login process aborted by user");
+                            break;
+                        } else if ("simulate".equalsIgnoreCase(email)) {
+                            logger.info("Simulation requested from console login");
+                            return null; // Special case to trigger simulation
+                        }
 
-                // Handle special commands
-                if ("exit".equalsIgnoreCase(email)) {
-                    logger.info("Login process aborted by user");
-                    break;
-                } else if ("simulate".equalsIgnoreCase(email)) {
-                    logger.info("Simulation requested from console login");
-                    return null; // Special case to trigger simulation
-                }
+                        // Use the provided credentials
+                        authenticatedUser = authenticateUser(email, password);
 
-                // Use the provided credentials (not hardcoded values)
-                authenticatedUser = authenticateUser(email, password);
-
-                // Handle authentication result
-                if (authenticatedUser == null) {
-                    attempts++;
-                    logger.warn("Login failed. Attempt {} of {}", attempts, MAX_ATTEMPTS);
-                    if (attempts < MAX_ATTEMPTS) {
-                        System.out.println("Invalid email or password. Please try again.");
+                        // Handle authentication result
+                        if (authenticatedUser == null) {
+                            attempts++;
+                            logger.warn("Login failed. Attempt {} of {}", attempts, MAX_ATTEMPTS);
+                            if (attempts < MAX_ATTEMPTS) {
+                                System.out.println("Invalid email or password. Please try again.");
+                            }
+                        } else {
+                            System.out.println("\nWelcome, " + authenticatedUser.getUsername() + "!");
+                            System.out.println("You are logged in as: " + authenticatedUser.getRole());
+                            displayMenuForRole(authenticatedUser.getRole());
+                        }
+                    } catch (Exception e) {
+                        logger.error("Error during console login: {}", e.getMessage(), e);
+                        System.out.println("An error occurred. Please try again.");
+                        attempts++;
                     }
-                } else {
+                }
+
+                if (authenticatedUser == null && attempts >= MAX_ATTEMPTS) {
+                    System.out.println("Maximum login attempts exceeded. Please try again later.");
+                }
+                break;
+                
+            case "2":
+                // Sign up process
+                authenticatedUser = consoleSignup(scanner);
+                if (authenticatedUser != null) {
                     System.out.println("\nWelcome, " + authenticatedUser.getUsername() + "!");
                     System.out.println("You are logged in as: " + authenticatedUser.getRole());
                     displayMenuForRole(authenticatedUser.getRole());
                 }
-            } catch (Exception e) {
-                logger.error("Error during console login: {}", e.getMessage(), e);
-                System.out.println("An error occurred. Please try again.");
-                attempts++;
-            }
-        }
-
-        if (authenticatedUser == null && attempts >= MAX_ATTEMPTS) {
-            System.out.println("Maximum login attempts exceeded. Please try again later.");
+                break;
+                
+            case "0":
+                logger.info("User chose to exit");
+                break;
+                
+            default:
+                System.out.println("Invalid option. Please try again.");
         }
 
         return authenticatedUser;
     }
-
+    
+    /**
+     * Interactive console signup method for new customers
+     * 
+     * @param scanner Scanner for reading user input
+     * @return The newly created and authenticated User object, or null if signup failed
+     */
+    private User consoleSignup(Scanner scanner) {
+        System.out.println("\n*************************************");
+        System.out.println("*          NEW CUSTOMER SIGNUP      *");
+        System.out.println("*************************************\n");
+        
+        try {
+            // Get username
+            System.out.print("Enter your name: ");
+            String username = scanner.nextLine().trim();
+            if (username.isEmpty()) {
+                System.out.println("Name cannot be empty.");
+                return null;
+            }
+            
+            // Get and validate email
+            String email = "";
+            boolean validEmail = false;
+            while (!validEmail) {
+                System.out.print("Enter your email: ");
+                email = scanner.nextLine().trim();
+                
+                if (email.isEmpty()) {
+                    System.out.println("Email cannot be empty.");
+                    continue;
+                }
+                
+                if (!isValidEmail(email)) {
+                    System.out.println("Invalid email format. Please enter a valid email address.");
+                    continue;
+                }
+                
+                if (userExists(email)) {
+                    System.out.println("This email is already registered. Please use another email or log in.");
+                    return null;
+                }
+                
+                validEmail = true;
+            }
+            
+            // Get and validate password
+            String password = "";
+            String confirmPassword = "";
+            boolean validPassword = false;
+            while (!validPassword) {
+                System.out.print("Enter password (minimum 6 characters): ");
+                password = scanner.nextLine().trim();
+                
+                if (password.length() < 6) {
+                    System.out.println("Password must be at least 6 characters long.");
+                    continue;
+                }
+                
+                System.out.print("Confirm password: ");
+                confirmPassword = scanner.nextLine().trim();
+                
+                if (!password.equals(confirmPassword)) {
+                    System.out.println("Passwords do not match. Please try again.");
+                    continue;
+                }
+                
+                validPassword = true;
+            }
+            
+            // Register the new user
+            User newUser = registerUser(username, email, password, "customer");
+            
+            if (newUser != null) {
+                System.out.println("\nRegistration successful! Your account has been created.");
+                return newUser;
+            } else {
+                System.out.println("\nRegistration failed. Please try again later.");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error during console signup: {}", e.getMessage(), e);
+            System.out.println("An error occurred during registration. Please try again later.");
+        }
+        
+        return null;
+    }
+    
     /**
      * Display appropriate menu based on user role
      */
@@ -318,5 +433,99 @@ public class PostgresAuthServiceImpl implements AuthService {
             logger.error("Database error updating last login: {}", e.getMessage(), e);
             return false;
         }
+    }
+
+    /**
+     * Register a new user in the system
+     * 
+     * @param username The username for the new user
+     * @param email The email address for the new user
+     * @param password The password for the new user
+     * @param role The role of the new user (usually "customer" for new registrations)
+     * @return The newly created User object, or null if registration failed
+     */
+    public User registerUser(String username, String email, String password, String role) {
+        logger.info("Attempting to register new user with email: {}", email);
+        
+        // Validate email format using regex
+        if (!isValidEmail(email)) {
+            logger.warn("Invalid email format: {}", email);
+            return null;
+        }
+        
+        // Check if user already exists
+        if (userExists(email)) {
+            logger.warn("User with email {} already exists", email);
+            return null;
+        }
+        
+        String sql = "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?) RETURNING id";
+        
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, username);
+            stmt.setString(2, email);
+            stmt.setString(3, password);
+            stmt.setString(4, role);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    // Create and return the new user
+                    User newUser = new User();
+                    newUser.setId(rs.getLong("id"));
+                    newUser.setUsername(username);
+                    newUser.setEmail(email);
+                    newUser.setRole(role);
+                    
+                    logger.info("New user registered successfully: {}", email);
+                    return newUser;
+                }
+            }
+            
+        } catch (SQLException e) {
+            logger.error("Database error during user registration: {}", e.getMessage(), e);
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Check if a user with the given email already exists
+     * 
+     * @param email The email to check
+     * @return true if the user exists, false otherwise
+     */
+    private boolean userExists(String email) {
+        String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
+        
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, email);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+            
+        } catch (SQLException e) {
+            logger.error("Error checking if user exists: {}", e.getMessage(), e);
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Validate email format using regex
+     * 
+     * @param email The email to validate
+     * @return true if the email is valid, false otherwise
+     */
+    private boolean isValidEmail(String email) {
+        // Basic email validation regex pattern
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        return email != null && email.matches(emailRegex);
     }
 }
