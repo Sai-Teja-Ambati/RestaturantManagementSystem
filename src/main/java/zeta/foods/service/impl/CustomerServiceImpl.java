@@ -289,7 +289,20 @@ public class CustomerServiceImpl implements CustomerService {
      * @return List of the customer's orders in descending date order
      */
     public List<Order> getPreviousOrders(Long customerId, int limit) {
+        // Check if we have any orders in memory first
         List<Order> customerOrderList = customerOrders.getOrDefault(customerId, new ArrayList<>());
+
+        // If no orders in memory, try to load from database
+        if (customerOrderList.isEmpty()) {
+            logger.info("No orders found in memory for customer ID: {}, loading from database...", customerId);
+            customerOrderList = loadOrdersFromDatabase(customerId);
+        }
+
+        // If still empty after trying to load from DB, return empty list
+        if (customerOrderList.isEmpty()) {
+            logger.info("No orders found in database for customer ID: {}", customerId);
+            return new ArrayList<>();
+        }
 
         // Sort orders by order time, most recent first
         return customerOrderList.stream()
@@ -557,3 +570,4 @@ public class CustomerServiceImpl implements CustomerService {
         return bill.toString();
     }
 }
+
