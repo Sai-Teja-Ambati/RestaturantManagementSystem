@@ -7,6 +7,7 @@ import zeta.foods.model.OrderItem;
 import zeta.foods.model.OrderStatus;
 import zeta.foods.model.User;
 import zeta.foods.model.Recipe;
+import zeta.foods.model.Table;
 import zeta.foods.service.CustomerService;
 import zeta.foods.utils.CurrentInventory;
 import zeta.foods.utils.DatabaseUtil;
@@ -14,6 +15,7 @@ import zeta.foods.utils.menu;
 import zeta.foods.utils.recipes;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,6 +30,19 @@ public class CustomerServiceImpl implements CustomerService {
 
     private static final Map<String, Order> orders = new HashMap<>();
     private static final Map<Long, List<Order>> customerOrders = new HashMap<>();
+    
+    // Fixed number of tables in the restaurant
+    private static final int TOTAL_TABLES = 12;
+    
+    // Store restaurant tables
+    private static final List<Table> restaurantTables = new ArrayList<>();
+    
+    // Initialize tables
+    static {
+        for (int i = 1; i <= TOTAL_TABLES; i++) {
+            restaurantTables.add(new Table(i));
+        }
+    }
 
     @Override
     public Order placeOrder(User user) {
@@ -648,7 +663,6 @@ public class CustomerServiceImpl implements CustomerService {
      * @param scanner Scanner for user input
      * @return true if booking was successful, false otherwise
      */
-    @Override
     public boolean bookTable(User user, Scanner scanner) {
         logger.info("Customer {} attempting to book a table", user.getUsername());
         System.out.println("\n=== Table Booking ===");
@@ -797,6 +811,223 @@ public class CustomerServiceImpl implements CustomerService {
         } catch (SQLException e) {
             logger.error("Error reserving table: {}", e.getMessage(), e);
             return false;
+        }
+    }
+
+    @Override
+    public List<Table> getAvailableTablesAtTime(LocalDateTime requestedDateTime) {
+        // Get all bookings that overlap with the requested time
+        List<Table> availableTables = new ArrayList<>();
+        
+        try (Connection conn = DatabaseUtil.getConnection()) {
+            // First load all tables with their current booking status
+            loadTablesFromDatabase();
+            
+            // Check each table if it's available at the requested time
+            for (Table table : restaurantTables) {
+                boolean isAvailable = true;
+                
+                // If table has booking times, check if they overlap with requested time
+                if (table.getBookingStartTime() != null && table.getBookingEndTime() != null) {
+                    // Check if requested time falls within the booking period
+                    if (!(requestedDateTime.isBefore(table.getBookingStartTime()) || 
+                          requestedDateTime.isAfter(table.getBookingEndTime()))) {
+                        isAvailable = false;
+                    }
+                }
+                
+                if (isAvailable) {
+                    availableTables.add(table);
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Database error while checking table availability: {}", e.getMessage(), e);
+        }
+        
+        return availableTables;
+    }
+    
+    /**
+     * Load current table status from database
+     */
+    private void loadTablesFromDatabase() {
+        try (Connection conn = DatabaseUtil.getConnection()) {
+            // Reset all tables first
+            for (Table table : restaurantTables) {
+                table.setOccupied(false);
+                table.setBookingStartTime(null);
+                table.setBookingEndTime(null);
+            }
+            
+            // Get all tables and their status
+            String sql = "SELECT * FROM tables";
+            try (Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery(sql)) {
+
+                while (rs.next()) {
+                    int tableNumber = rs.getInt("table_number");
+                    boolean isOccupied = rs.getBoolean("is_occupied");
+
+                    // Find matching table in our list
+                    for (Table table : restaurantTables) {
+                        if (table.getTableNumber() == tableNumber) {
+                            table.setOccupied(isOccupied);
+
+                            // Set booking time if available
+                            Timestamp bookingTime = rs.getTimestamp("booking_start_time");
+                            if (bookingTime != null) {
+                                LocalDateTime startTime = bookingTime.toLocalDateTime();
+                                table.setBookingStartTime(startTime);
+                                // Estimate end time as 2 hours after start time
+                                table.setBookingEndTime(startTime.plusHours(2));
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Database error while loading tables: {}", e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Book a table for a customer at a specific time period
+     * @param user The user booking the table
+     * @param tableNumber The table number to book
+     * @param startTime The start time of the booking
+     * @param endTime The end time of the booking
+     * @return true if booking was successful, false otherwise
+     */
+    @Override
+    public boolean bookTable(User user, int tableNumber, LocalDateTime startTime, LocalDateTime endTime) {
+        logger.info("Customer {} attempting to book a table {} from {} to {}",
+                user.getUsername(), tableNumber, startTime, endTime);
+
+        try (Connection connection = DatabaseUtil.getConnection()) {
+            // First check if the table exists
+            PreparedStatement checkTableStmt = connection.prepareStatement(
+                    "SELECT id FROM tables WHERE table_number = ?");
+            checkTableStmt.setInt(1, tableNumber);
+            ResultSet tableResult = checkTableStmt.executeQuery();
+
+            if (!tableResult.next()) {
+                logger.warn("Table {} does not exist", tableNumber);
+                return false;
+            }
+
+            int tableId = tableResult.getInt("id");
+
+            // Check if the table is already occupied
+            PreparedStatement checkOccupiedStmt = connection.prepareStatement(
+                    "SELECT is_occupied FROM tables WHERE id = ?");
+            checkOccupiedStmt.setInt(1, tableId);
+            ResultSet occupiedResult = checkOccupiedStmt.executeQuery();
+
+            if (occupiedResult.next() && occupiedResult.getBoolean("is_occupied")) {
+                logger.warn("Table {} is already occupied", tableNumber);
+                return false;
+            }
+            
+            // Set table as occupied and update booking_start_time
+            PreparedStatement updateTableStmt = connection.prepareStatement(
+                    "UPDATE tables SET is_occupied = TRUE, booking_start_time = ? WHERE id = ?");
+            updateTableStmt.setTimestamp(1, Timestamp.valueOf(startTime));
+            updateTableStmt.setInt(2, tableId);
+            updateTableStmt.executeUpdate();
+
+            // Insert reservation record
+            PreparedStatement reservationStmt = connection.prepareStatement(
+                    "INSERT INTO table_reservations (table_id, customer_id, reservation_time, status) VALUES (?, ?, ?, 'active')");
+            reservationStmt.setInt(1, tableId);
+            reservationStmt.setLong(2, user.getId());
+            reservationStmt.setTimestamp(3, Timestamp.valueOf(startTime));
+            int rowsAffected = reservationStmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                logger.info("Table {} successfully booked for user {} from {} to {}",
+                        tableNumber, user.getUsername(), startTime, endTime);
+                return true;
+            } else {
+                logger.warn("Failed to book table {} for user {}", tableNumber, user.getUsername());
+                return false;
+            }
+            
+        } catch (SQLException e) {
+            logger.error("Error booking table: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+    
+    /**
+     * Display available tables at a specific time for a customer to choose from
+     * @param user The user viewing available tables
+     */
+    @Override
+    public void viewAndBookTable(User user) {
+        logger.info("Customer {} viewing available tables", user.getUsername());
+        Scanner scanner = new Scanner(System.in);
+        
+        System.out.println("\n=== Table Booking ===");
+        System.out.println("Enter the date and time for your reservation (YYYY-MM-DD HH:MM): ");
+        String dateTimeStr = scanner.nextLine();
+
+        LocalDateTime requestedDateTime;
+        try {
+            requestedDateTime = LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        } catch (Exception e) {
+            System.out.println("Invalid date/time format. Please use YYYY-MM-DD HH:MM format.");
+            return;
+        }
+        
+        // Calculate end time (assuming 2 hours duration)
+        LocalDateTime endDateTime = requestedDateTime.plusHours(2);
+
+        // Get available tables at the requested time
+        List<Table> availableTables = getAvailableTablesAtTime(requestedDateTime);
+        
+        if (availableTables.isEmpty()) {
+            System.out.println("Sorry, there are no tables available at " + requestedDateTime);
+            return;
+        }
+        
+        // Display available tables
+        System.out.println("\nAvailable Tables at " + requestedDateTime + ":");
+        for (Table table : availableTables) {
+            System.out.println("Table " + table.getTableNumber() + " - Seats: " + table.getCapacity());
+        }
+        
+        // Ask for table selection
+        System.out.print("\nEnter table number to book (or 0 to cancel): ");
+        int tableNumber;
+        try {
+            tableNumber = Integer.parseInt(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter a number.");
+            return;
+        }
+        
+        if (tableNumber == 0) {
+            System.out.println("Booking canceled.");
+            return;
+        }
+
+        // Check if selected table is in available tables
+        boolean isTableAvailable = availableTables.stream()
+                .anyMatch(t -> t.getTableNumber() == tableNumber);
+
+        if (!isTableAvailable) {
+            System.out.println("Invalid table selection or table not available at the requested time.");
+            return;
+        }
+        
+        // Book the table
+        boolean success = bookTable(user, tableNumber, requestedDateTime, endDateTime);
+
+        if (success) {
+            System.out.println("Table " + tableNumber + " successfully booked for " + dateTimeStr);
+        } else {
+            System.out.println("Failed to book the table. Please try again later.");
         }
     }
 }

@@ -380,21 +380,16 @@ public class Main {
     }
 
     /**
-     * Book a table for the customer
-     * @param user The current logged-in user
-     * @param scanner Scanner for user input
+     * Handle the booking of a table for a customer
+     * @param user Logged in user
+     * @param scanner Scanner for input
      */
     private static void bookTableForCustomer(User user, Scanner scanner) {
         logger.info("Customer {} attempting to book a table", user.getUsername());
         System.out.println("\n=== Book Table ===");
 
         // Use the customer service to handle the table booking process
-        boolean success = customerService.bookTable(user, scanner);
-
-        if (success) {
-            logger.info("Table successfully booked for customer: {}", user.getUsername());
-        } else {
-            logger.info("Table booking failed or was cancelled for customer: {}", user.getUsername());
-        }
+        // Call viewAndBookTable instead of bookTable, as this handles user input for time and table selection
+        customerService.viewAndBookTable(user);
     }
 }

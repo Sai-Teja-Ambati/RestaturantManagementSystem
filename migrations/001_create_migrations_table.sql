@@ -94,21 +94,28 @@ BEGIN
     END IF;
 END $$;
 
-INSERT INTO orders (order_id, customer_id, items, bill_subtotal)
-VALUES (
-    'ORD-' || SUBSTRING(MD5(RANDOM()::TEXT) FROM 1 FOR 8),
-    (SELECT id FROM users WHERE email = 'customer1@example.com' LIMIT 1),
-    '[
-        {"category": "Veg Starters", "itemName": "Paneer Tikka", "price": 249, "quantity": 1},
-        {"category": "Indian Breads", "itemName": "Butter Naan", "price": 50, "quantity": 2}
-    ]'::JSONB,
-    349.00
-);
+-- Insert a sample order, but only if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM orders WHERE items::text LIKE '%Paneer Tikka%') THEN
+        INSERT INTO orders (order_id, customer_id, items, bill_subtotal)
+        VALUES (
+            'ORD-' || SUBSTRING(MD5(RANDOM()::TEXT) FROM 1 FOR 8),
+            (SELECT id FROM users WHERE email = 'customer1@example.com' LIMIT 1),
+            '[
+                {"category": "Veg Starters", "itemName": "Paneer Tikka", "price": 249, "quantity": 1},
+                {"category": "Indian Breads", "itemName": "Butter Naan", "price": 50, "quantity": 2}
+            ]'::JSONB,
+            349.00
+        );
+    END IF;
+END $$;
 
--- Create tables table for tracking restaurant tables
+-- Create tables table for tracking restaurant tables with capacity column
 CREATE TABLE IF NOT EXISTS tables (
     id SERIAL PRIMARY KEY,
     table_number INT UNIQUE NOT NULL,
+    capacity INT NOT NULL DEFAULT 4,
     is_occupied BOOLEAN DEFAULT FALSE,
     is_served BOOLEAN DEFAULT FALSE,
     booking_start_time TIMESTAMP,
@@ -126,3 +133,100 @@ CREATE TABLE IF NOT EXISTS order_tables (
 -- Add index for faster lookups
 CREATE INDEX IF NOT EXISTS idx_order_tables_order_id ON order_tables(order_id);
 CREATE INDEX IF NOT EXISTS idx_order_tables_table_id ON order_tables(table_id);
+
+-- Migration: Create table_reservations table
+CREATE TABLE IF NOT EXISTS table_reservations (
+    id SERIAL PRIMARY KEY,
+    table_id INT NOT NULL REFERENCES tables(id),
+    customer_id BIGINT NOT NULL REFERENCES users(id),
+    reservation_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) NOT NULL DEFAULT 'active',
+    notes TEXT,
+    table_number INT,
+    start_time TIMESTAMP,
+    end_time TIMESTAMP
+);
+
+-- Create indexes for faster lookups
+CREATE INDEX IF NOT EXISTS idx_table_reservations_table_id ON table_reservations(table_id);
+CREATE INDEX IF NOT EXISTS idx_table_reservations_customer_id ON table_reservations(customer_id);
+CREATE INDEX IF NOT EXISTS idx_table_reservations_table_number ON table_reservations(table_number);
+
+-- Create index for faster lookups by table_number
+CREATE INDEX IF NOT EXISTS idx_tables_table_number ON tables(table_number);
+
+-- Insert restaurant tables with various capacities if they don't exist
+DO $$
+BEGIN
+    -- Table 1: Small table for two
+    IF NOT EXISTS (SELECT 1 FROM tables WHERE table_number = 1) THEN
+        INSERT INTO tables (table_number, capacity, is_occupied, is_served)
+        VALUES (1, 2, FALSE, FALSE);
+    END IF;
+
+    -- Table 2: Standard 4-person table
+    IF NOT EXISTS (SELECT 1 FROM tables WHERE table_number = 2) THEN
+        INSERT INTO tables (table_number, capacity, is_occupied, is_served)
+        VALUES (2, 4, FALSE, FALSE);
+    END IF;
+
+    -- Table 3: Standard 4-person table
+    IF NOT EXISTS (SELECT 1 FROM tables WHERE table_number = 3) THEN
+        INSERT INTO tables (table_number, capacity, is_occupied, is_served)
+        VALUES (3, 4, FALSE, FALSE);
+    END IF;
+
+    -- Table 4: Larger 6-person table
+    IF NOT EXISTS (SELECT 1 FROM tables WHERE table_number = 4) THEN
+        INSERT INTO tables (table_number, capacity, is_occupied, is_served)
+        VALUES (4, 6, FALSE, FALSE);
+    END IF;
+
+    -- Table 5: Standard 4-person table
+    IF NOT EXISTS (SELECT 1 FROM tables WHERE table_number = 5) THEN
+        INSERT INTO tables (table_number, capacity, is_occupied, is_served)
+        VALUES (5, 4, FALSE, FALSE);
+    END IF;
+
+    -- Table 6: Large group table
+    IF NOT EXISTS (SELECT 1 FROM tables WHERE table_number = 6) THEN
+        INSERT INTO tables (table_number, capacity, is_occupied, is_served)
+        VALUES (6, 8, FALSE, FALSE);
+    END IF;
+
+    -- Table 7: Small table for two
+    IF NOT EXISTS (SELECT 1 FROM tables WHERE table_number = 7) THEN
+        INSERT INTO tables (table_number, capacity, is_occupied, is_served)
+        VALUES (7, 2, FALSE, FALSE);
+    END IF;
+
+    -- Table 8: Standard 4-person table
+    IF NOT EXISTS (SELECT 1 FROM tables WHERE table_number = 8) THEN
+        INSERT INTO tables (table_number, capacity, is_occupied, is_served)
+        VALUES (8, 4, FALSE, FALSE);
+    END IF;
+
+    -- Table 9: Standard 4-person table
+    IF NOT EXISTS (SELECT 1 FROM tables WHERE table_number = 9) THEN
+        INSERT INTO tables (table_number, capacity, is_occupied, is_served)
+        VALUES (9, 4, FALSE, FALSE);
+    END IF;
+
+    -- Table 10: Larger 6-person table
+    IF NOT EXISTS (SELECT 1 FROM tables WHERE table_number = 10) THEN
+        INSERT INTO tables (table_number, capacity, is_occupied, is_served)
+        VALUES (10, 6, FALSE, FALSE);
+    END IF;
+
+    -- Table 11: Very large group table
+    IF NOT EXISTS (SELECT 1 FROM tables WHERE table_number = 11) THEN
+        INSERT INTO tables (table_number, capacity, is_occupied, is_served)
+        VALUES (11, 10, FALSE, FALSE);
+    END IF;
+
+    -- Table 12: Standard 4-person table
+    IF NOT EXISTS (SELECT 1 FROM tables WHERE table_number = 12) THEN
+        INSERT INTO tables (table_number, capacity, is_occupied, is_served)
+        VALUES (12, 4, FALSE, FALSE);
+    END IF;
+END $$;

@@ -13,7 +13,7 @@ public class User {
 
     // Constructors
     public User() {}
-
+    
     public User(Long id, String username, String email, String password, String role) {
         this.id = id;
         this.username = username;
@@ -78,15 +78,15 @@ public class User {
     public void setLastLogin(ZonedDateTime lastLogin) {
         this.lastLogin = lastLogin;
     }
-
+    
     public boolean isAdmin() {
         return "admin".equals(role);
     }
-
+    
     public boolean isWaiter() {
         return "waiter".equals(role);
     }
-
+    
     public boolean isCustomer() {
         return "customer".equals(role);
     }

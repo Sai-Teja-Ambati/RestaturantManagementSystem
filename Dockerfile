@@ -48,8 +48,12 @@ RUN ls -la /app/ && \
 # Expose the port
 EXPOSE 8080
 
-# Set proper terminal environment for interactive input
-ENV TERM=xterm
+# Set environment variables
+ENV JAVA_OPTS="-Xmx512m -Xms256m"
 
-# Set command to run with the -i flag to ensure System.in works properly
-ENTRYPOINT ["java", "-Dfile.encoding=UTF-8", "-jar", "/app/app.jar"]
+# Run the application
+CMD ["java", "-jar", "/app/app.jar"]
+
+
+
+

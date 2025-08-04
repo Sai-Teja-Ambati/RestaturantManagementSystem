@@ -69,9 +69,21 @@ public class Table {
         this.bookingEndTime = bookingEndTime;
     }
 
+    // Default capacity for restaurant tables (can be modified in future versions)
+    private int capacity = 4;
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
+    }
+
     @Override
     public String toString() {
-        String status = isOccupied ? (isServed ? " (Occupied, Served)" : " (Occupied, Not Served)") : " (Available)";
-        return "Table #" + tableNumber + status;
+        return "Table #" + tableNumber +
+               (isOccupied ? " (Occupied)" : " (Available)") +
+               (isServed ? " (Served)" : "");
     }
 }
