@@ -338,12 +338,14 @@ public class PostgresAuthServiceImpl implements AuthService {
 
             case "waiter":
                 System.out.println("1. Take New Order");
+                System.out.println("2. Check Unserved Tables");
                 break;
 
             case "customer":
                 System.out.println("1. View Menu");
                 System.out.println("2. Place Order for Take Away");
                 System.out.println("3. View Order Status");
+                System.out.println("4. Book Table");
                 break;
 
             default:

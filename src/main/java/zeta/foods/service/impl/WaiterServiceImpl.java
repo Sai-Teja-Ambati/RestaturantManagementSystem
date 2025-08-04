@@ -10,7 +10,6 @@ import zeta.foods.utils.DatabaseUtil;
 import zeta.foods.utils.menu;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -384,29 +383,28 @@ public class WaiterServiceImpl implements WaiterService {
         List<Table> unservedTables = new ArrayList<>();
 
         try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT * FROM tables WHERE is_occupied = true AND is_served = false ORDER BY table_number")) {
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "SELECT * FROM tables WHERE is_occupied = TRUE AND is_served = FALSE ORDER BY table_number")) {
 
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    Table table = new Table();
-                    table.setTableNumber(rs.getInt("table_number"));
-                    table.setOccupied(rs.getBoolean("is_occupied"));
-                    table.setServed(rs.getBoolean("is_served"));
+            while (rs.next()) {
+                Table table = new Table();
+                table.setTableNumber(rs.getInt("table_number"));
+                table.setOccupied(rs.getBoolean("is_occupied"));
+                table.setServed(rs.getBoolean("is_served"));
 
-                    // Convert SQL timestamp to LocalDateTime if not null
-                    Timestamp startTime = rs.getTimestamp("booking_start_time");
-                    if (startTime != null) {
-                        table.setBookingStartTime(startTime.toLocalDateTime());
-                    }
-
-                    Timestamp endTime = rs.getTimestamp("booking_end_time");
-                    if (endTime != null) {
-                        table.setBookingEndTime(endTime.toLocalDateTime());
-                    }
-
-                    unservedTables.add(table);
+                // Convert SQL timestamp to LocalDateTime if not null
+                Timestamp startTime = rs.getTimestamp("booking_start_time");
+                if (startTime != null) {
+                    table.setBookingStartTime(startTime.toLocalDateTime());
                 }
+
+                Timestamp endTime = rs.getTimestamp("booking_end_time");
+                if (endTime != null) {
+                    table.setBookingEndTime(endTime.toLocalDateTime());
+                }
+
+                unservedTables.add(table);
             }
 
             logger.info("Retrieved {} unserved tables from database", unservedTables.size());

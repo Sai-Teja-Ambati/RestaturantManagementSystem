@@ -643,5 +643,162 @@ public class CustomerServiceImpl implements CustomerService {
 
         return bill.toString();
     }
-}
 
+    /**
+     * Book a table for a customer
+     * @param user The customer booking the table
+     * @param scanner Scanner for user input
+     * @return true if booking was successful, false otherwise
+     */
+    @Override
+    public boolean bookTable(User user, Scanner scanner) {
+        logger.info("Customer {} attempting to book a table", user.getUsername());
+        System.out.println("\n=== Table Booking ===");
+
+        // Get available tables from database
+        List<zeta.foods.model.Table> availableTables = getAvailableTables();
+
+        if (availableTables.isEmpty()) {
+            System.out.println("Sorry, there are no tables available at the moment.");
+            return false;
+        }
+
+        // Display available tables
+        System.out.println("\nAvailable Tables:");
+        for (zeta.foods.model.Table table : availableTables) {
+            System.out.println(table.toString());
+        }
+
+        // Ask customer to select a table
+        int tableNumber;
+        while (true) {
+            System.out.print("\nEnter table number to book (0 to cancel): ");
+            try {
+                tableNumber = Integer.parseInt(scanner.nextLine().trim());
+
+                if (tableNumber == 0) {
+                    System.out.println("Booking cancelled.");
+                    return false;
+                }
+
+                // Validate table selection
+                boolean validTable = false;
+                for (zeta.foods.model.Table table : availableTables) {
+                    if (table.getTableNumber() == tableNumber) {
+                        validTable = true;
+                        break;
+                    }
+                }
+
+                if (validTable) {
+                    break;
+                } else {
+                    System.out.println("Invalid table number. Please select from the available tables.");
+                }
+
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+            }
+        }
+
+        // Book the table (update database)
+        boolean success = reserveTable(tableNumber, user.getId());
+
+        if (success) {
+            System.out.println("\nTable #" + tableNumber + " has been successfully booked for you.");
+            System.out.println("Please arrive within 30 minutes of your reservation time.");
+            return true;
+        } else {
+            System.out.println("\nSorry, there was an error booking your table. Please try again later.");
+            return false;
+        }
+    }
+
+    /**
+     * Get list of available (unoccupied) tables
+     * @return List of available tables
+     */
+    private List<zeta.foods.model.Table> getAvailableTables() {
+        List<zeta.foods.model.Table> availableTables = new ArrayList<>();
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "SELECT * FROM tables WHERE is_occupied = FALSE ORDER BY table_number")) {
+
+            while (rs.next()) {
+                zeta.foods.model.Table table = new zeta.foods.model.Table();
+                table.setTableNumber(rs.getInt("table_number"));
+                table.setOccupied(false);
+                table.setServed(false);
+
+                availableTables.add(table);
+            }
+
+            logger.info("Retrieved {} available tables from database", availableTables.size());
+
+        } catch (SQLException e) {
+            logger.error("Error retrieving available tables: {}", e.getMessage(), e);
+        }
+
+        return availableTables;
+    }
+
+    /**
+     * Reserve a table for a customer
+     * @param tableNumber The table number to reserve
+     * @param customerId The customer ID making the reservation
+     * @return true if reservation was successful, false otherwise
+     */
+    private boolean reserveTable(int tableNumber, Long customerId) {
+        logger.info("Reserving table #{} for customer ID: {}", tableNumber, customerId);
+
+        try (Connection conn = DatabaseUtil.getConnection()) {
+            // Start transaction
+            conn.setAutoCommit(false);
+
+            // First check if the table is still available
+            try (PreparedStatement checkStmt = conn.prepareStatement(
+                    "SELECT * FROM tables WHERE table_number = ? AND is_occupied = FALSE")) {
+
+                checkStmt.setInt(1, tableNumber);
+                ResultSet rs = checkStmt.executeQuery();
+
+                if (!rs.next()) {
+                    logger.warn("Table #{} is no longer available", tableNumber);
+                    conn.rollback();
+                    return false;
+                }
+
+                int tableId = rs.getInt("id");
+
+                // Update table status to occupied
+                try (PreparedStatement updateStmt = conn.prepareStatement(
+                        "UPDATE tables SET is_occupied = TRUE, booking_start_time = NOW() WHERE id = ?")) {
+
+                    updateStmt.setInt(1, tableId);
+                    updateStmt.executeUpdate();
+                }
+
+                // Create reservation record
+                try (PreparedStatement reserveStmt = conn.prepareStatement(
+                        "INSERT INTO table_reservations (table_id, customer_id, reservation_time, status) " +
+                                "VALUES (?, ?, NOW(), 'active')")) {
+
+                    reserveStmt.setInt(1, tableId);
+                    reserveStmt.setLong(2, customerId);
+                    reserveStmt.executeUpdate();
+                }
+
+                // Commit transaction
+                conn.commit();
+                logger.info("Table #{} successfully reserved for customer ID: {}", tableNumber, customerId);
+                return true;
+            }
+
+        } catch (SQLException e) {
+            logger.error("Error reserving table: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+}

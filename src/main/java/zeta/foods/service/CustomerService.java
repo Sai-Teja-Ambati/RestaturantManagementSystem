@@ -54,4 +54,18 @@ public interface CustomerService {
      * @param scanner Scanner for user input
      */
     void displayRestaurantMenu(Scanner scanner);
+
+    /**
+     * View order status for a user
+     * @param user The user viewing their orders
+     */
+    void viewOrderStatus(User user);
+
+    /**
+     * Book a table for a customer
+     * @param user The customer booking the table
+     * @param scanner Scanner for user input
+     * @return true if booking was successful, false otherwise
+     */
+    boolean bookTable(User user, Scanner scanner);
 }

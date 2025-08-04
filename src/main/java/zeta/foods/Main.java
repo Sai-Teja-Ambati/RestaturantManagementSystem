@@ -126,7 +126,8 @@ public class Main {
                                 viewOrderStatus(user, scanner);
                                 break;
                             case "4":
-//                                CustomerService.bookTable(user, scanner);
+                                bookTableForCustomer(user, scanner);
+                                break;
                             default:
                                 System.out.println("Invalid option. Please try again.");
                                 break;
@@ -135,6 +136,9 @@ public class Main {
                         switch (input) {
                             case "1":
                                 takeNewOrderAsWaiter(scanner);
+                                break;
+                            case "2":
+                                checkUnservedTables();
                                 break;
                             default:
                                 System.out.println("Invalid option. Please try again.");
@@ -341,6 +345,46 @@ public class Main {
         } else {
             logger.info("Order creation cancelled or failed");
             System.out.println("\nOrder creation was cancelled or failed.");
+        }
+    }
+
+    /**
+     * Check and display unserved tables
+     */
+    private static void checkUnservedTables() {
+        logger.info("Checking unserved tables");
+        System.out.println("\n=== Unserved Tables ===");
+
+        // Use the WaiterService to fetch unserved tables
+        java.util.List<zeta.foods.model.Table> unservedTables = waiterService.getUnservedTables();
+
+        if (unservedTables != null && !unservedTables.isEmpty()) {
+            System.out.println("Tables waiting to be served:");
+            for (zeta.foods.model.Table table : unservedTables) {
+                System.out.println(table.toString());
+            }
+            System.out.println("\nTotal unserved tables: " + unservedTables.size());
+        } else {
+            System.out.println("All tables are currently served.");
+        }
+    }
+
+    /**
+     * Book a table for the customer
+     * @param user The current logged-in user
+     * @param scanner Scanner for user input
+     */
+    private static void bookTableForCustomer(User user, Scanner scanner) {
+        logger.info("Customer {} attempting to book a table", user.getUsername());
+        System.out.println("\n=== Book Table ===");
+
+        // Use the customer service to handle the table booking process
+        boolean success = customerService.bookTable(user, scanner);
+
+        if (success) {
+            logger.info("Table successfully booked for customer: {}", user.getUsername());
+        } else {
+            logger.info("Table booking failed or was cancelled for customer: {}", user.getUsername());
         }
     }
 }
