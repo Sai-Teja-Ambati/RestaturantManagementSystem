@@ -14,17 +14,12 @@ public class PostgresAuthServiceImpl implements AuthService {
 
     @Override
     public User authenticateUser(String email, String password) {
-        // Log authentication attempt but mask password for security
-        logger.info("Attempting to authenticate user: '{}'", email);
-        logger.info("Password length: {}, Password value: '{}'", password != null ? password.length() : "null", password);
 
-        // Print each character code to check for hidden/special characters
         if (password != null) {
             StringBuilder charCodes = new StringBuilder("Password char codes: ");
             for (char c : password.toCharArray()) {
                 charCodes.append((int)c).append(",");
             }
-            logger.info(charCodes.toString());
         }
 
         // Debug: directly check if user exists with this exact email and password
@@ -38,18 +33,11 @@ public class PostgresAuthServiceImpl implements AuthService {
                     String dbEmail = emailRs.getString("email");
                     String dbPassword = emailRs.getString("password");
 
-                    logger.info("Found user with email: '{}', DB password: '{}'", dbEmail, dbPassword);
-                    logger.info("Password length from DB: {}", dbPassword.length());
-
                     // Print each character code of DB password
                     StringBuilder dbCharCodes = new StringBuilder("DB Password char codes: ");
                     for (char c : dbPassword.toCharArray()) {
                         dbCharCodes.append((int)c).append(",");
                     }
-                    logger.info(dbCharCodes.toString());
-
-                    // Direct character-by-character comparison
-                    logger.info("Direct password comparison result: {}", dbPassword.equals(password));
 
                     if (!dbPassword.equals(password)) {
                         logger.info("Password mismatch details:");
@@ -59,8 +47,8 @@ public class PostgresAuthServiceImpl implements AuthService {
                             for (int i = 0; i < dbPassword.length(); i++) {
                                 if (dbPassword.charAt(i) != password.charAt(i)) {
                                     logger.info("Mismatch at position {}: DB='{}' ({}), Input='{}' ({})",
-                                        i, dbPassword.charAt(i), (int)dbPassword.charAt(i),
-                                        password.charAt(i), (int)password.charAt(i));
+                                            i, dbPassword.charAt(i), (int)dbPassword.charAt(i),
+                                            password.charAt(i), (int)password.charAt(i));
                                 }
                             }
                         }
@@ -70,15 +58,10 @@ public class PostgresAuthServiceImpl implements AuthService {
                 }
             }
 
-            // Now try the full authentication query
             String debugQuery = "SELECT * FROM users WHERE email = '" + email + "' AND password = '" + password + "'";
-//            String debugQuery = "SELECT * FROM users WHERE email = 'ambatisaiteja123@gmail.com' AND password = 'admin123'";
-            logger.info("Executing direct query: {}", debugQuery);
-
 
             try (ResultSet debugRs = debugStmt.executeQuery(debugQuery)) {
                 if (debugRs.next()) {
-                    logger.info("DEBUG - Direct query found matching user!");
                 } else {
                     logger.warn("DEBUG - Direct query found NO matching user!");
                 }
@@ -89,13 +72,11 @@ public class PostgresAuthServiceImpl implements AuthService {
 
         String sql = "SELECT * FROM users WHERE email = ? AND password = ?";
 
-        logger.info("Preparing to execute authentication query for email: {}, password: {}", email, password);
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, email);
             stmt.setString(2, password);
-            logger.debug("Executing authentication query for email: {}", email);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -329,11 +310,11 @@ public class PostgresAuthServiceImpl implements AuthService {
 
         switch (role.toLowerCase()) {
             case "admin":
-                System.out.println("1. Manage Users");
-                System.out.println("2. View System Reports");
+//                System.out.println("1. Manage Users");
+//                System.out.println("2. View System Reports");
                 System.out.println("3. Fetch Current Inventory");
                 System.out.println("4. Restore Current Inventory");
-                System.out.println("5. Manage Menu Items");
+//                System.out.println("5. Manage Menu Items");
                 break;
 
             case "waiter":

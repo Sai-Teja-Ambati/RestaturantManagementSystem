@@ -256,7 +256,7 @@ public class CustomerServiceImpl implements CustomerService {
         // Check ingredient availability before adding to order
         if (!CurrentInventory.checkIngredientsAvailability(itemsToCheck)) {
             logger.warn("Cannot add {} to order: insufficient ingredients", itemName);
-            System.out.println("Sorry, we don't have enough ingredients to prepare " + itemName + " at this time.");
+            logger.info("Sorry, we don't have enough ingredients to prepare " + itemName + " at this time.");
             return false;
         }
 
@@ -268,7 +268,6 @@ public class CustomerServiceImpl implements CustomerService {
         try (Connection conn = DatabaseUtil.getConnection()) {
             // First, get all existing items for this order
             String itemsJson = createItemsJson(order);
-            logger.debug("Order JSON for update: {}", itemsJson);
             logger.debug("Order subtotal: {}", order.getTotalAmount());
 
             // Check if order exists in database
@@ -289,7 +288,6 @@ public class CustomerServiceImpl implements CustomerService {
                 stmt.setDouble(2, order.getTotalAmount());
                 stmt.setString(3, orderId);
 
-                logger.info("Executing update for order {} with JSON: {}", orderId, itemsJson);
                 int rowsUpdated = stmt.executeUpdate();
                 if (rowsUpdated == 0) {
                     logger.error("Failed to update order {} in database (No rows affected)", orderId);

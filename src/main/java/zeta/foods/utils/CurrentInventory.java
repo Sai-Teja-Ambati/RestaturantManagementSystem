@@ -140,7 +140,6 @@ public class CurrentInventory {
                     try {
                         int quantity = Integer.parseInt(parts[1].trim());
                         currentInventory.put(ingredient, quantity);
-                        logger.debug("Loaded current inventory item: {} - {}", ingredient, quantity);
                     } catch (NumberFormatException e) {
                         logger.error("Invalid quantity format for ingredient: {}", parts[0]);
                     }
@@ -198,8 +197,6 @@ public class CurrentInventory {
      * Save the current inventory to the CurrentInventory.txt file
      */
     public static void saveCurrentInventory() {
-        logger.info("Saving current inventory to file: {}", CURRENT_INVENTORY_FILE_PATH);
-
         try (FileWriter writer = new FileWriter(CURRENT_INVENTORY_FILE_PATH);
              BufferedWriter bufferedWriter = new BufferedWriter(writer)) {
 
@@ -221,8 +218,6 @@ public class CurrentInventory {
                             logger.error("Error writing ingredient to file: {}", entry.getKey(), e);
                         }
                     });
-
-            logger.info("Current inventory successfully saved with {} ingredients", currentInventory.size());
 
         } catch (IOException e) {
             logger.error("Error saving current inventory to file: {}", e.getMessage(), e);
@@ -248,7 +243,6 @@ public class CurrentInventory {
     public static void updateQuantity(String ingredient, int newQuantity) {
         if (newQuantity >= 0) {
             currentInventory.put(ingredient, newQuantity);
-            logger.info("Updated current quantity for {}: {}", ingredient, newQuantity);
             // Save changes to file after each update
             saveCurrentInventory();
         } else {

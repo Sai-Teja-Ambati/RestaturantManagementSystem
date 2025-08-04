@@ -176,7 +176,6 @@ public class WaiterServiceImpl implements WaiterService {
                     customer.setEmail(rs.getString("email"));
                     customer.setRole(rs.getString("role"));
 
-                    logger.info("Customer found: {} (ID: {})", customerName, customer.getId());
                     return customer;
                 }
             }

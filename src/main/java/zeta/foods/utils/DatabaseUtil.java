@@ -12,7 +12,6 @@ public class DatabaseUtil {
 
     private static final String DB_HOST = System.getenv().getOrDefault("DB_HOST", "localhost");
     private static final String DB_PORT = System.getenv().getOrDefault("DB_PORT", "5432");
-    // Check for new database from migrations, otherwise use default
     private static final String DB_NAME = System.getenv().getOrDefault("DB_NAME", "restaurant_management_new");
     private static final String DB_USER = System.getenv().getOrDefault("DB_USER", "restaurant_user");
     private static final String DB_PASSWORD = System.getenv().getOrDefault("DB_PASSWORD", "restaurant_password");
@@ -27,7 +26,6 @@ public class DatabaseUtil {
                 // Load PostgreSQL JDBC driver
                 Class.forName("org.postgresql.Driver");
 
-                logger.info("Connecting to database {} at {}:{}", DB_NAME, DB_HOST, DB_PORT);
 
                 // Create connection
                 connection = DriverManager.getConnection(

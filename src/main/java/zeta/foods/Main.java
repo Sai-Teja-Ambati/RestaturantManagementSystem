@@ -27,7 +27,25 @@ public class Main {
     private static AdminService adminService;
     private static WaiterService waiterService;
 
+    // Banner to display on startup
+    private static final String BANNER =
+        "\n" +
+        " ╔═══════════════════════════════════════════════════════════════╗\n" +
+        " ║                                                               ║\n" +
+        " ║    ███████╗███████╗ ██████╗  ██████╗ ██████╗ ███████╗         ║\n" +
+        " ║    ╚══███╔╝██╔════╝██╔═══██╗██╔═══██╗██╔══██╗██╔════╝         ║\n" +
+        " ║      ███╔╝ █████╗  ██║   ██║██║   ██║██║  ██║███████╗         ║\n" +
+        " ║     ███╔╝  ██╔══╝  ██║   ██║██║   ██║██║  ██║╚════██║         ║\n" +
+        " ║    ███████╗██║     ╚██████╔╝╚██████╔╝██████╔╝███████║         ║\n" +
+        " ║    ╚══════╝╚═╝      ╚═════╝  ╚═════╝ ╚═════╝ ╚══════╝         ║\n" +
+        " ║                                                               ║\n" +
+        " ║                  RESTAURANT MANAGEMENT SYSTEM                 ║\n" +
+        " ║                                                               ║\n" +
+        " ╚═══════════════════════════════════════════════════════════════╝\n";
+
     public static void main(String[] args) {
+        logger.info(BANNER);
+
         logger.info("Starting Restaurant Management System...");
 
         try {
@@ -35,11 +53,6 @@ public class Main {
             String dbHost = System.getenv().getOrDefault("DB_HOST", "localhost");
             String dbPort = System.getenv().getOrDefault("DB_PORT", "5432");
             String dbName = System.getenv().getOrDefault("DB_NAME", "restaurant_management");
-
-            logger.info("Database Configuration:");
-            logger.info("  Host: {}", dbHost);
-            logger.info("  Port: {}", dbPort);
-            logger.info("  Database: {}", dbName);
 
             // Check for simulation mode from command line or environment
             boolean simulationMode = Boolean.parseBoolean(System.getenv().getOrDefault("SIMULATION_MODE", "false"));
@@ -57,9 +70,6 @@ public class Main {
             adminService = new AdminServiceImpl();
             waiterService = new WaiterServiceImpl();
             logger.info("Services initialized");
-
-            logger.info("Restaurant Management System is running successfully!");
-            logger.info("Application is ready to serve requests on port 8080");
 
             // Run simulation or interactive mode
             if (simulationMode) {
