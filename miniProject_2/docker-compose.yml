@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # Restaurant Management Application
+  restaurant_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: restaurant_management_app
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=restaurant_management
+      - DB_USER=restaurant_user
+      - DB_PASSWORD=restaurant_password
+      - JAVA_OPTS=-Xmx512m -Xms256m
+      - TERM=xterm
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - restaurant_network
+    restart: unless-stopped
+    stdin_open: true  # docker run -i
+    tty: true         # docker run -t
+    volumes:
+      - app_logs:/app/logs
+      - ./src:/app/src:ro  # Mount source code for easy reference
+
+
+  db:
+    container_name: postgres-db
+    image: postgres:14
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: insurance_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - insurance-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  flyway:
+    container_name: flyway-migrations
+    image: flyway/flyway:9.22
+    command: -connectRetries=60 -baselineOnMigrate=true migrate
+    environment:
+      FLYWAY_URL: jdbc:postgresql://db:5432/insurance_db
+      FLYWAY_USER: postgres
+      FLYWAY_PASSWORD: postgres
+    volumes:
+      - ./src/main/resources/db/migrations:/flyway/sql
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - insurance-network
+
+networks:
+  insurance-network:
+    driver: bridge
+  restaurant_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  app_logs:
+    driver: local
