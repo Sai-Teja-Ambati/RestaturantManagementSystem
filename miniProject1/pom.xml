@@ -7,10 +7,13 @@
     <groupId>zeta.foods</groupId>
     <artifactId>restaurant-management-system</artifactId>
     <version>1.0.0</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
     <name>Restaurant Management System</name>
     <description>A Java-based Restaurant Management System with PostgreSQL integration</description>
+    <modules>
+        <module>miniProject2</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

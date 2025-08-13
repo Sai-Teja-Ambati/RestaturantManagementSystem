@@ -30,13 +30,13 @@ public class CustomerServiceImpl implements CustomerService {
 
     private static final Map<String, Order> orders = new HashMap<>();
     private static final Map<Long, List<Order>> customerOrders = new HashMap<>();
-    
+
     // Fixed number of tables in the restaurant
     private static final int TOTAL_TABLES = 12;
-    
+
     // Store restaurant tables
     private static final List<Table> restaurantTables = new ArrayList<>();
-    
+
     // Initialize tables
     static {
         for (int i = 1; i <= TOTAL_TABLES; i++) {
@@ -818,24 +818,24 @@ public class CustomerServiceImpl implements CustomerService {
     public List<Table> getAvailableTablesAtTime(LocalDateTime requestedDateTime) {
         // Get all bookings that overlap with the requested time
         List<Table> availableTables = new ArrayList<>();
-        
+
         try (Connection conn = DatabaseUtil.getConnection()) {
             // First load all tables with their current booking status
             loadTablesFromDatabase();
-            
+
             // Check each table if it's available at the requested time
             for (Table table : restaurantTables) {
                 boolean isAvailable = true;
-                
+
                 // If table has booking times, check if they overlap with requested time
                 if (table.getBookingStartTime() != null && table.getBookingEndTime() != null) {
                     // Check if requested time falls within the booking period
-                    if (!(requestedDateTime.isBefore(table.getBookingStartTime()) || 
-                          requestedDateTime.isAfter(table.getBookingEndTime()))) {
+                    if (!(requestedDateTime.isBefore(table.getBookingStartTime()) ||
+                            requestedDateTime.isAfter(table.getBookingEndTime()))) {
                         isAvailable = false;
                     }
                 }
-                
+
                 if (isAvailable) {
                     availableTables.add(table);
                 }
@@ -843,10 +843,10 @@ public class CustomerServiceImpl implements CustomerService {
         } catch (SQLException e) {
             logger.error("Database error while checking table availability: {}", e.getMessage(), e);
         }
-        
+
         return availableTables;
     }
-    
+
     /**
      * Load current table status from database
      */
@@ -858,7 +858,7 @@ public class CustomerServiceImpl implements CustomerService {
                 table.setBookingStartTime(null);
                 table.setBookingEndTime(null);
             }
-            
+
             // Get all tables and their status
             String sql = "SELECT * FROM tables";
             try (Statement stmt = conn.createStatement();
@@ -890,7 +890,7 @@ public class CustomerServiceImpl implements CustomerService {
             logger.error("Database error while loading tables: {}", e.getMessage(), e);
         }
     }
-    
+
     /**
      * Book a table for a customer at a specific time period
      * @param user The user booking the table
@@ -928,7 +928,7 @@ public class CustomerServiceImpl implements CustomerService {
                 logger.warn("Table {} is already occupied", tableNumber);
                 return false;
             }
-            
+
             // Set table as occupied and update booking_start_time
             PreparedStatement updateTableStmt = connection.prepareStatement(
                     "UPDATE tables SET is_occupied = TRUE, booking_start_time = ? WHERE id = ?");
@@ -952,13 +952,13 @@ public class CustomerServiceImpl implements CustomerService {
                 logger.warn("Failed to book table {} for user {}", tableNumber, user.getUsername());
                 return false;
             }
-            
+
         } catch (SQLException e) {
             logger.error("Error booking table: {}", e.getMessage(), e);
             return false;
         }
     }
-    
+
     /**
      * Display available tables at a specific time for a customer to choose from
      * @param user The user viewing available tables
@@ -967,7 +967,7 @@ public class CustomerServiceImpl implements CustomerService {
     public void viewAndBookTable(User user) {
         logger.info("Customer {} viewing available tables", user.getUsername());
         Scanner scanner = new Scanner(System.in);
-        
+
         System.out.println("\n=== Table Booking ===");
         System.out.println("Enter the date and time for your reservation (YYYY-MM-DD HH:MM): ");
         String dateTimeStr = scanner.nextLine();
@@ -979,24 +979,24 @@ public class CustomerServiceImpl implements CustomerService {
             System.out.println("Invalid date/time format. Please use YYYY-MM-DD HH:MM format.");
             return;
         }
-        
+
         // Calculate end time (assuming 2 hours duration)
         LocalDateTime endDateTime = requestedDateTime.plusHours(2);
 
         // Get available tables at the requested time
         List<Table> availableTables = getAvailableTablesAtTime(requestedDateTime);
-        
+
         if (availableTables.isEmpty()) {
             System.out.println("Sorry, there are no tables available at " + requestedDateTime);
             return;
         }
-        
+
         // Display available tables
         System.out.println("\nAvailable Tables at " + requestedDateTime + ":");
         for (Table table : availableTables) {
             System.out.println("Table " + table.getTableNumber() + " - Seats: " + table.getCapacity());
         }
-        
+
         // Ask for table selection
         System.out.print("\nEnter table number to book (or 0 to cancel): ");
         int tableNumber;
@@ -1006,7 +1006,7 @@ public class CustomerServiceImpl implements CustomerService {
             System.out.println("Invalid input. Please enter a number.");
             return;
         }
-        
+
         if (tableNumber == 0) {
             System.out.println("Booking canceled.");
             return;
@@ -1020,7 +1020,7 @@ public class CustomerServiceImpl implements CustomerService {
             System.out.println("Invalid table selection or table not available at the requested time.");
             return;
         }
-        
+
         // Book the table
         boolean success = bookTable(user, tableNumber, requestedDateTime, endDateTime);
 
