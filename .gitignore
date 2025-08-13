@@ -36,3 +36,10 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+###miniprj2
+###
+*.class
+*.log
+*.swp
+*~.nib
