@@ -44,10 +44,71 @@ A comprehensive Spring Boot backend application for restaurant management with J
 - **Framework**: Spring Boot 3.2.0
 - **Security**: Spring Security with JWT
 - **Database**: PostgreSQL (with JPA/Hibernate)
+- **Database Migrations**: Flyway 9.22.3
 - **Authentication**: JWT tokens
 - **Validation**: Bean Validation
 - **Code Generation**: Lombok
 - **Testing**: JUnit 5, H2 (for tests)
+
+## Database Setup
+
+The application uses **Flyway** for database migrations to ensure consistent database schema across environments:
+
+- **V1**: Creates users table with roles and authentication
+- **V2**: Creates restaurant tables with capacity and status
+- **V3**: Creates orders table with JSONB items and billing
+- **V4**: Creates table reservations with time slots
+- **V5**: Creates order-tables junction table
+- **V6**: Creates inventory items with quantity tracking
+- **V7**: Inserts default users (admin, waiters, customer)
+
+All database schema changes are version-controlled and automatically applied during startup.
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Docker and Docker Compose installed
+- Java 17+ (for local development)
+- Maven 3.6+ (for local development)
+
+### Running with Docker
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd RestaurantManagementSystem/miniProject_2
+   ```
+
+2. **Start the application**
+   ```bash
+   docker-compose up --build
+   ```
+
+   This will:
+   - Start PostgreSQL database
+   - Run Flyway 9.22.3-alpine migrations to set up the database schema
+   - Start the Spring Boot application
+
+3. **Access the application**
+   - API: http://localhost:8080
+   - Health Check: http://localhost:8080/actuator/health
+
+### Configuration Files
+- **application.properties**: Main configuration with development settings
+- **application-docker.properties**: Docker-specific configuration with optimized logging
+- **Flyway migrations**: Located in `src/main/resources/db/migration/`
+
+### Stopping the application
+```bash
+docker-compose down
+```
+
+### Clean restart (if needed)
+```bash
+docker-compose down -v
+docker-compose up --build
+```
+
 - **Containerization**: Docker & Docker Compose
 
 ## Project Structure

@@ -49,11 +49,7 @@ RUN ls -la /app/ && \
 EXPOSE 8080
 
 # Set environment variables
-ENV JAVA_OPTS="-Xmx512m -Xms256m"
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8080/actuator/health || exit 1
+ENV JAVA_OPTS="-Xmx512m -Xms256m -Djava.security.egd=file:/dev/./urandom"
 
 # Run the application
-CMD ["java", "-jar", "/app/app.jar"]
+CMD ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]

@@ -1,0 +1,22 @@
+CLEANUP COMMANDS - Run these before starting:
+
+1. Stop all containers:
+   docker-compose down -v
+
+2. Remove the problematic PostgreSQL volume:
+   docker volume rm miniproject_2_postgres_data
+
+3. Remove any existing containers:
+   docker rm -f restaurant-postgres restaurant-flyway restaurant-app
+
+4. Clean up any orphaned containers:
+   docker container prune -f
+
+5. Now start fresh:
+   docker-compose up --build
+
+The key changes made:
+- Removed the persistent volume that was causing authentication issues
+- Added POSTGRES_HOST_AUTH_METHOD: md5 for proper authentication
+- Added init-db.sql to ensure database is properly initialized
+- Simplified the configuration to avoid conflicts

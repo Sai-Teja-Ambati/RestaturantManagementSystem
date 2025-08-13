@@ -7,6 +7,7 @@ import com.restaurant.entity.User;
 import com.restaurant.service.AuthService;
 import com.restaurant.service.JwtService;
 import com.restaurant.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,6 +16,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class AuthServiceImpl implements AuthService {
 
     @Autowired
@@ -28,6 +30,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse register(RegisterRequest request) {
+        log.info("Attempting to register user: {}", request.getUsername());
         try {
             User user = userService.createUser(
                     request.getUsername(),
@@ -37,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
             );
 
             String jwtToken = jwtService.generateToken(user);
+            log.info("User registered successfully: {} with role: {}", user.getUsername(), user.getRole());
             
             return AuthResponse.builder()
                     .accessToken(jwtToken)
@@ -46,12 +50,14 @@ public class AuthServiceImpl implements AuthService {
                     .message("User registered successfully")
                     .build();
         } catch (Exception e) {
+            log.error("Registration failed for user: {}. Error: {}", request.getUsername(), e.getMessage());
             throw new RuntimeException("Registration failed: " + e.getMessage());
         }
     }
 
     @Override
     public AuthResponse authenticate(AuthRequest request) {
+        log.info("Attempting to authenticate user: {}", request.getUsername());
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -64,6 +70,7 @@ public class AuthServiceImpl implements AuthService {
             userService.updateLastLogin(user.getUsername());
             
             String jwtToken = jwtService.generateToken(user);
+            log.info("User authenticated successfully: {} with role: {}", user.getUsername(), user.getRole());
             
             return AuthResponse.builder()
                     .accessToken(jwtToken)
@@ -73,6 +80,7 @@ public class AuthServiceImpl implements AuthService {
                     .message("Authentication successful")
                     .build();
         } catch (AuthenticationException e) {
+            log.warn("Authentication failed for user: {}. Reason: {}", request.getUsername(), e.getMessage());
             throw new RuntimeException("Authentication failed: Invalid credentials");
         }
     }
