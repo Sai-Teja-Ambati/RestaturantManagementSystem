@@ -1,6 +1,7 @@
 package com.restaurant.service.impl;
 
 import com.restaurant.entity.User;
+import com.restaurant.enums.Role;
 import com.restaurant.repository.UserRepository;
 import com.restaurant.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +36,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User createUser(String username, String email, String password, User.Role role) {
+    public User createUser(String username, String email, String password, Role role) {
         if (userRepository.existsByUsername(username)) {
             throw new RuntimeException("Username already exists");
         }
@@ -70,7 +71,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> findByRole(User.Role role) {
+    public List<User> findByRole(Role role) {
         return userRepository.findByRole(role);
     }
 
@@ -98,7 +99,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public long countByRole(User.Role role) {
+    public long countByRole(Role role) {
         return userRepository.countByRole(role);
     }
 

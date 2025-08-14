@@ -3,6 +3,7 @@ package com.restaurant.service.impl;
 import com.restaurant.entity.RestaurantTable;
 import com.restaurant.entity.TableReservation;
 import com.restaurant.entity.User;
+import com.restaurant.enums.ReservationStatus;
 import com.restaurant.repository.TableReservationRepository;
 import com.restaurant.service.TableReservationService;
 import com.restaurant.service.TableService;
@@ -66,7 +67,7 @@ public class TableReservationServiceImpl implements TableReservationService {
 
     @Override
     public List<TableReservation> getActiveReservations() {
-        return reservationRepository.findByStatus(TableReservation.ReservationStatus.ACTIVE);
+        return reservationRepository.findByStatus(ReservationStatus.ACTIVE);
     }
 
     @Override
@@ -79,7 +80,7 @@ public class TableReservationServiceImpl implements TableReservationService {
         TableReservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new RuntimeException("Reservation not found: " + reservationId));
         
-        reservation.setStatus(TableReservation.ReservationStatus.COMPLETED);
+        reservation.setStatus(ReservationStatus.COMPLETED);
         return reservationRepository.save(reservation);
     }
 
@@ -88,7 +89,7 @@ public class TableReservationServiceImpl implements TableReservationService {
         TableReservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new RuntimeException("Reservation not found: " + reservationId));
         
-        reservation.setStatus(TableReservation.ReservationStatus.CANCELLED);
+        reservation.setStatus(ReservationStatus.CANCELLED);
         return reservationRepository.save(reservation);
     }
 

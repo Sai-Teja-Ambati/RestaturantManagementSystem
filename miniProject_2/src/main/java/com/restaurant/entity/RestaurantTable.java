@@ -1,5 +1,6 @@
 package com.restaurant.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -45,12 +46,15 @@ public class RestaurantTable {
     @Column(name = "booking_end_time")
     private LocalDateTime bookingEndTime;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "table", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TableReservation> reservations;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "table", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderTable> orderTables;
 
+    // Custom constructor for convenience - @Builder.Default handles default values
     public RestaurantTable(Integer tableNumber, Integer capacity) {
         this.tableNumber = tableNumber;
         this.capacity = capacity;

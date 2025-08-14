@@ -2,6 +2,8 @@ package com.restaurant.repository;
 
 import com.restaurant.entity.Order;
 import com.restaurant.entity.User;
+import com.restaurant.enums.OrderStatus;
+import com.restaurant.enums.PaymentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,9 +20,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     
     List<Order> findByCustomer(User customer);
     
-    List<Order> findByOrderStatus(Order.OrderStatus orderStatus);
+    List<Order> findByOrderStatus(OrderStatus orderStatus);
     
-    List<Order> findByPaymentStatus(Order.PaymentStatus paymentStatus);
+    List<Order> findByPaymentStatus(PaymentStatus paymentStatus);
     
     List<Order> findByTableNumber(Integer tableNumber);
     
@@ -45,6 +47,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                                       @Param("endDate") LocalDateTime endDate);
     
     @Query("SELECT o FROM Order o WHERE o.orderStatus = :status AND o.orderTimestamp >= :since ORDER BY o.orderTimestamp DESC")
-    List<Order> findByStatusSince(@Param("status") Order.OrderStatus status, 
+    List<Order> findByStatusSince(@Param("status") OrderStatus status, 
                                  @Param("since") LocalDateTime since);
 }

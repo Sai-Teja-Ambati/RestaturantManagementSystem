@@ -1,5 +1,9 @@
 package com.restaurant.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.restaurant.enums.OrderStatus;
+import com.restaurant.enums.PaymentStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -31,6 +35,7 @@ public class Order {
     @Column(name = "order_id", unique = true, nullable = false)
     private String orderId;
 
+    @JsonIgnoreProperties({"orders", "reservations", "password"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
     private User customer;
@@ -75,9 +80,11 @@ public class Order {
     @Column(name = "special_instructions", columnDefinition = "TEXT")
     private String specialInstructions;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderTable> orderTables;
 
+    // Custom constructor for creating orders with automatic total calculation
     public Order(String orderId, User customer, List<Map<String, Object>> items, BigDecimal billSubtotal) {
         this.orderId = orderId;
         this.customer = customer;
@@ -104,13 +111,5 @@ public class Order {
         
         // Calculate total bill
         this.billTotal = this.billSubtotal.add(this.serviceCharge).add(this.cgstSgst);
-    }
-
-    public enum PaymentStatus {
-        PENDING, PAID, FAILED
-    }
-
-    public enum OrderStatus {
-        PENDING, CONFIRMED, PREPARING, READY, SERVED, CANCELLED
     }
 }

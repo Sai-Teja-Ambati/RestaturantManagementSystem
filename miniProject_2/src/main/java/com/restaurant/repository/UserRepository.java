@@ -1,6 +1,7 @@
 package com.restaurant.repository;
 
 import com.restaurant.entity.User;
+import com.restaurant.enums.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,11 +21,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     boolean existsByEmail(String email);
     
-    List<User> findByRole(User.Role role);
+    List<User> findByRole(Role role);
     
     @Query("SELECT u FROM User u WHERE u.role = :role AND u.createdAt >= CURRENT_DATE")
-    List<User> findByRoleAndCreatedToday(@Param("role") User.Role role);
+    List<User> findByRoleAndCreatedToday(@Param("role") Role role);
     
     @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role")
-    long countByRole(@Param("role") User.Role role);
+    long countByRole(@Param("role") Role role);
 }

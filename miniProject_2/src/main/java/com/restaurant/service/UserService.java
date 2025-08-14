@@ -1,6 +1,7 @@
 package com.restaurant.service;
 
 import com.restaurant.entity.User;
+import com.restaurant.enums.Role;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.Optional;
 
 public interface UserService extends UserDetailsService {
     
-    User createUser(String username, String email, String password, User.Role role);
+    User createUser(String username, String email, String password, Role role);
     
     Optional<User> findByUsername(String username);
     
@@ -16,7 +17,7 @@ public interface UserService extends UserDetailsService {
     
     Optional<User> findById(Long id);
     
-    List<User> findByRole(User.Role role);
+    List<User> findByRole(Role role);
     
     List<User> getAllUsers();
     
@@ -26,7 +27,7 @@ public interface UserService extends UserDetailsService {
     
     boolean existsByEmail(String email);
     
-    long countByRole(User.Role role);
+    long countByRole(Role role);
     
     User save(User user);
     

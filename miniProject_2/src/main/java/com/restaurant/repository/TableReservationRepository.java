@@ -3,6 +3,7 @@ package com.restaurant.repository;
 import com.restaurant.entity.RestaurantTable;
 import com.restaurant.entity.TableReservation;
 import com.restaurant.entity.User;
+import com.restaurant.enums.ReservationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,7 +19,7 @@ public interface TableReservationRepository extends JpaRepository<TableReservati
     
     List<TableReservation> findByTable(RestaurantTable table);
     
-    List<TableReservation> findByStatus(TableReservation.ReservationStatus status);
+    List<TableReservation> findByStatus(ReservationStatus status);
     
     List<TableReservation> findByTableNumber(Integer tableNumber);
     

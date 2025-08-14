@@ -4,6 +4,7 @@ import com.restaurant.entity.InventoryItem;
 import com.restaurant.entity.Order;
 import com.restaurant.entity.RestaurantTable;
 import com.restaurant.entity.User;
+import com.restaurant.enums.Role;
 import com.restaurant.service.InventoryService;
 import com.restaurant.service.OrderService;
 import com.restaurant.service.TableService;
@@ -107,7 +108,7 @@ public class AdminController {
     @GetMapping("/users/waiters")
     public ResponseEntity<List<User>> getAllWaiters() {
         try {
-            List<User> waiters = userService.findByRole(User.Role.WAITER);
+            List<User> waiters = userService.findByRole(Role.WAITER);
             return ResponseEntity.ok(waiters);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
@@ -117,7 +118,7 @@ public class AdminController {
     @GetMapping("/users/customers")
     public ResponseEntity<List<User>> getAllCustomers() {
         try {
-            List<User> customers = userService.findByRole(User.Role.CUSTOMER);
+            List<User> customers = userService.findByRole(Role.CUSTOMER);
             return ResponseEntity.ok(customers);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
@@ -181,8 +182,8 @@ public class AdminController {
             
             Map<String, Object> stats = Map.of(
                     "totalUsers", userService.getAllUsers().size(),
-                    "totalCustomers", userService.countByRole(User.Role.CUSTOMER),
-                    "totalWaiters", userService.countByRole(User.Role.WAITER),
+                    "totalCustomers", userService.countByRole(Role.CUSTOMER),
+                    "totalWaiters", userService.countByRole(Role.WAITER),
                     "totalTables", tableService.getAllTables().size(),
                     "occupiedTables", tableService.getOccupiedTables().size(),
                     "availableTables", tableService.getAvailableTables().size(),

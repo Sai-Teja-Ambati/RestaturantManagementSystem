@@ -2,6 +2,7 @@ package com.restaurant.service.impl;
 
 import com.restaurant.entity.Order;
 import com.restaurant.entity.User;
+import com.restaurant.enums.OrderStatus;
 import com.restaurant.repository.OrderRepository;
 import com.restaurant.service.InventoryService;
 import com.restaurant.service.OrderService;
@@ -81,7 +82,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order updateOrderStatus(String orderId, Order.OrderStatus status) {
+    public Order updateOrderStatus(String orderId, OrderStatus status) {
         Order order = orderRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
         

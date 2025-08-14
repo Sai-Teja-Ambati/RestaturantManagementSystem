@@ -2,6 +2,7 @@ package com.restaurant.service;
 
 import com.restaurant.entity.Order;
 import com.restaurant.entity.User;
+import com.restaurant.enums.OrderStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,7 +12,7 @@ public interface OrderService {
     
     Order createOrder(User customer, List<Map<String, Object>> items, Integer tableNumber, String specialInstructions);
     
-    Order updateOrderStatus(String orderId, Order.OrderStatus status);
+    Order updateOrderStatus(String orderId, OrderStatus status);
     
     List<Order> getCustomerOrders(Long customerId);
     

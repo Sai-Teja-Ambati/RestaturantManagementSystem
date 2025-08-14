@@ -47,6 +47,7 @@ public class InventoryItem {
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    // Custom constructors for convenience
     public InventoryItem(String name, Integer quantity, Integer initialQuantity) {
         this.name = name;
         this.quantity = quantity;

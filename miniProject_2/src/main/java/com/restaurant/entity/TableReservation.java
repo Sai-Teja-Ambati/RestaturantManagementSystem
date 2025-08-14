@@ -1,5 +1,7 @@
 package com.restaurant.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.restaurant.enums.ReservationStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -18,11 +20,13 @@ public class TableReservation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnoreProperties({"reservations", "orderTables"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "table_id", nullable = false)
     @NotNull(message = "Table is required")
     private RestaurantTable table;
 
+    @JsonIgnoreProperties({"orders", "reservations", "password"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
     @NotNull(message = "Customer is required")
@@ -49,6 +53,7 @@ public class TableReservation {
     @Column(name = "end_time")
     private LocalDateTime endTime;
 
+    // Custom constructor for creating reservations with automatic field population
     public TableReservation(RestaurantTable table, User customer, LocalDateTime startTime, LocalDateTime endTime) {
         this.table = table;
         this.customer = customer;
@@ -56,17 +61,12 @@ public class TableReservation {
         this.endTime = endTime;
         this.reservationTime = LocalDateTime.now();
         this.status = ReservationStatus.ACTIVE;
-        this.tableNumber = table.getTableNumber();
+        this.tableNumber = table != null ? table.getTableNumber() : null;
     }
 
+    // Custom setter to maintain tableNumber consistency
     public void setTable(RestaurantTable table) {
         this.table = table;
-        if (table != null) {
-            this.tableNumber = table.getTableNumber();
-        }
-    }
-
-    public enum ReservationStatus {
-        ACTIVE, COMPLETED, CANCELLED
+        this.tableNumber = table != null ? table.getTableNumber() : null;
     }
 }
