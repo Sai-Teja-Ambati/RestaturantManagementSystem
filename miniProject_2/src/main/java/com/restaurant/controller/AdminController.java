@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +34,9 @@ public class AdminController {
 
     @Autowired
     private TableService tableService;
+
+    @Autowired
+    private com.restaurant.scheduler.InventoryUpdater inventoryUpdater;
 
     // Inventory Management
     @GetMapping("/inventory")
@@ -61,6 +65,33 @@ public class AdminController {
             inventoryService.restoreInventoryFromFile();
             return ResponseEntity.ok(Map.of(
                     "message", "Inventory restored successfully from initial inventory file"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/inventory/restore/manual")
+    public ResponseEntity<Map<String, Object>> manualInventoryRestore() {
+        try {
+            inventoryUpdater.restoreInventoryDaily();
+            return ResponseEntity.ok(Map.of(
+                    "message", "Manual inventory restoration triggered successfully"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/scheduler/inventory/status")
+    public ResponseEntity<Map<String, Object>> getInventorySchedulerStatus() {
+        try {
+            String nextExecution = inventoryUpdater.getNextExecutionInfo();
+            return ResponseEntity.ok(Map.of(
+                    "schedulerStatus", "ACTIVE",
+                    "cronExpression", "0 0 7 * * * (Daily at 7:00 AM)",
+                    "nextExecution", nextExecution,
+                    "description", "Automatic inventory restoration from InitialInventory.txt"
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -194,6 +225,35 @@ public class AdminController {
             );
             
             return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // Scheduler Management
+    @GetMapping("/scheduler/next-inventory-update")
+    public ResponseEntity<Map<String, Object>> getNextInventoryUpdate() {
+        try {
+            String nextExecution = inventoryUpdater.getNextExecutionInfo();
+            return ResponseEntity.ok(Map.of(
+                    "message", "Next scheduled inventory restoration",
+                    "nextExecution", nextExecution,
+                    "schedule", "Daily at 7:00 AM",
+                    "cronExpression", "0 0 7 * * *"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/scheduler/trigger-inventory-update")
+    public ResponseEntity<Map<String, Object>> triggerInventoryUpdate() {
+        try {
+            inventoryUpdater.restoreInventoryDaily();
+            return ResponseEntity.ok(Map.of(
+                    "message", "Manual inventory restoration triggered successfully",
+                    "timestamp", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

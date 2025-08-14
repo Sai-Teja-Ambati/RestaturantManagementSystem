@@ -36,7 +36,7 @@ public class Order {
     private String orderId;
 
     @JsonIgnoreProperties({"orders", "reservations", "password"})
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "customer_id")
     private User customer;
 

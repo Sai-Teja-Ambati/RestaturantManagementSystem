@@ -1,6 +1,7 @@
 package com.restaurant.service.impl;
 
 import com.restaurant.service.MenuService;
+import com.restaurant.util.MenuUtil;
 import com.restaurant.util.RecipeUtil;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +12,7 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public Map<String, Object> getFullMenu() {
-        return RecipeUtil.getMenuWithPrices();
+        return MenuUtil.getFullMenu();
     }
 
     @Override

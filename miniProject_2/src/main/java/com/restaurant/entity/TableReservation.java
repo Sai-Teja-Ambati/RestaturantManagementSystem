@@ -21,13 +21,13 @@ public class TableReservation {
     private Long id;
 
     @JsonIgnoreProperties({"reservations", "orderTables"})
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "table_id", nullable = false)
     @NotNull(message = "Table is required")
     private RestaurantTable table;
 
     @JsonIgnoreProperties({"orders", "reservations", "password"})
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "customer_id", nullable = false)
     @NotNull(message = "Customer is required")
     private User customer;
