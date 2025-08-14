@@ -53,8 +53,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/api/users", "/api/users/**").permitAll()
+                        .requestMatchers("/api/bookings", "/api/bookings/**").permitAll()
+                        .requestMatchers("/api/orders", "/api/orders/**").permitAll()
                         .requestMatchers("/api/customer/orders", "/api/customer/orders/**").permitAll()
                         .requestMatchers("/api/customer/reservations").permitAll()
+                        .requestMatchers("/api/chef/**").hasRole("CHEF")
                         .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/waiter/**").hasRole("WAITER")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

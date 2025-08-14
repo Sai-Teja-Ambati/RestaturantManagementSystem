@@ -29,4 +29,8 @@ public interface OrderService {
     long countOrdersSince(LocalDateTime since);
     
     Double getTotalRevenueBetweenDates(LocalDateTime startDate, LocalDateTime endDate);
+    
+    Order getOrderById(String orderId);
+    
+    List<Order> getOrdersByStatus(OrderStatus status);
 }

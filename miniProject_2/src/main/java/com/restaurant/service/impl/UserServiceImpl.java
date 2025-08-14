@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User createUser(String username, String email, String password, Role role) {
+    public User createUser(String username, String name, String email, String password, Role role) {
         if (userRepository.existsByUsername(username)) {
             throw new RuntimeException("Username already exists");
         }
@@ -46,6 +46,7 @@ public class UserServiceImpl implements UserService {
 
         User user = User.builder()
                 .username(username)
+                .name(name)
                 .email(email)
                 .password(passwordEncoder.encode(password))
                 .role(role)

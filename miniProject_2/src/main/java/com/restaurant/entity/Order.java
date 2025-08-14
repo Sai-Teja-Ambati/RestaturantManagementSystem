@@ -72,7 +72,7 @@ public class Order {
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "order_status")
-    private OrderStatus orderStatus = OrderStatus.PENDING;
+    private OrderStatus orderStatus = OrderStatus.PLACED;
 
     @Column(name = "table_number")
     private Integer tableNumber;
@@ -94,7 +94,7 @@ public class Order {
         this.cgstSgst = BigDecimal.ZERO;
         this.serviceCharge = BigDecimal.ZERO;
         this.paymentStatus = PaymentStatus.PENDING;
-        this.orderStatus = OrderStatus.PENDING;
+        this.orderStatus = OrderStatus.PLACED;
         calculateTotals();
     }
 

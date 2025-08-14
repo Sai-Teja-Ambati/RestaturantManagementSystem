@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface UserService extends UserDetailsService {
     
-    User createUser(String username, String email, String password, Role role);
+    User createUser(String username, String name, String email, String password, Role role);
     
     Optional<User> findByUsername(String username);
     

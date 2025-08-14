@@ -137,4 +137,15 @@ public class OrderServiceImpl implements OrderService {
         Double revenue = orderRepository.getTotalRevenueBetweenDates(startDate, endDate);
         return revenue != null ? revenue : 0.0;
     }
+
+    @Override
+    public Order getOrderById(String orderId) {
+        return orderRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
+    }
+
+    @Override
+    public List<Order> getOrdersByStatus(OrderStatus status) {
+        return orderRepository.findByOrderStatus(status);
+    }
 }

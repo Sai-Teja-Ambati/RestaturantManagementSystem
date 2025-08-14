@@ -34,6 +34,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             User user = userService.createUser(
                     request.getUsername(),
+                    request.getName(),
                     request.getEmail(),
                     request.getPassword(),
                     request.getRole()
