@@ -7,11 +7,16 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 
-# Build the application
-RUN echo "Starting Maven build..." && \
-    mvn clean compile package -DskipTests -X && \
-    echo "Build completed. Checking target directory:" && \
+# # Build the application
+# RUN echo "Starting Maven build..." && \
+#     mvn clean compile package -X && \
+#     echo "Build completed. Checking target directory:" && \
+#     ls -la /app/target/
+RUN echo "Starting Maven build with tests..." && \
+    mvn clean test package -X && \
+    echo "Build and tests completed. Checking target directory:" && \
     ls -la /app/target/
+
 
 # Verify the JAR file was created
 RUN if [ ! -f "/app/target/restaurant-management-1.0.0.jar" ]; then \
