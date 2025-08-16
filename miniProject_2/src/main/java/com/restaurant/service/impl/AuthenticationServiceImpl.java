@@ -1,4 +1,4 @@
-package org.restaurant.services;
+package org.restaurant.service.impl;
 
 import org.restaurant.dto.request.CreateUserRequest;
 import org.restaurant.dto.request.LoginRequest;
@@ -10,6 +10,8 @@ import org.restaurant.exceptions.ResourceAlreadyExistsException;
 import org.restaurant.exceptions.BusinessLogicException;
 import org.restaurant.repositories.UserRepository;
 import org.restaurant.security.JwtUtils;
+import org.restaurant.service.AuthenticationService;
+import org.restaurant.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -22,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class AuthenticationService {
+public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Autowired
     private UserRepository userRepository;

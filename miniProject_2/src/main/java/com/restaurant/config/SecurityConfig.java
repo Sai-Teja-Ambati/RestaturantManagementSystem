@@ -2,7 +2,7 @@ package org.restaurant.config;
 
 import org.restaurant.security.JwtAuthenticationEntryPoint;
 import org.restaurant.security.JwtAuthenticationFilter;
-import org.restaurant.services.CustomUserDetailsService;
+import org.restaurant.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
