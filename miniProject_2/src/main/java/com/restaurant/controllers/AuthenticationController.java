@@ -54,6 +54,20 @@ public class AuthenticationController {
     }
 
     /**
+     * Admin registration for privileged accounts
+     * POST /auth/register-admin
+     * Required: ADMIN role only
+     */
+    @PostMapping("/register-admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<JwtAuthenticationResponse> registerAdmin(@Valid @RequestBody CreateUserRequest request) {
+        logger.info("Admin registration attempt for: {} with role: {}", request.getUsername(), request.getRole());
+        JwtAuthenticationResponse response = authenticationService.registerAdmin(request);
+        logger.info("Admin registered successfully: {} with role: {}", request.getUsername(), request.getRole());
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    /**
      * Refresh JWT token
      * POST /auth/refresh
      * Requires valid refresh token

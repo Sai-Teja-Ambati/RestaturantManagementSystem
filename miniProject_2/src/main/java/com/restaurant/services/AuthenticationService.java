@@ -41,6 +41,8 @@ public class AuthenticationService {
 
     /**
      * Register a new user
+     * Note: Public registration is restricted to non-privileged roles only.
+     * Admin and Manager accounts can only be created by existing admins.
      */
     public JwtAuthenticationResponse register(CreateUserRequest request) {
         // Check if username already exists
@@ -53,11 +55,72 @@ public class AuthenticationService {
             throw new ResourceAlreadyExistsException("Email '" + request.getEmail() + "' is already registered");
         }
 
+        // Security: Restrict public registration to non-privileged roles only
+        UserRole assignedRole = UserRole.CUSTOMER; // Default to least privileged role
+        
+        if (request.getRole() != null) {
+            // Only allow registration for safe, non-privileged roles
+            if (request.getRole() == UserRole.CUSTOMER || 
+                request.getRole() == UserRole.WAITER || 
+                request.getRole() == UserRole.CHEF) {
+                assignedRole = request.getRole();
+            } else if (request.getRole() == UserRole.ADMIN || request.getRole() == UserRole.MANAGER) {
+                // Log security attempt and reject privileged role assignment
+                throw new BusinessLogicException("Cannot register with privileged role '" + request.getRole() + 
+                    "'. Admin and Manager accounts must be created by existing administrators.");
+            }
+        }
+
         // Create new user
         User user = new User();
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
-        user.setRole(request.getRole() != null ? request.getRole() : UserRole.WAITER); // Default to WAITER if not specified
+        user.setRole(assignedRole); // Use the validated role
+        user.setUsername(request.getUsername());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        // Save user
+        User savedUser = userRepository.save(user);
+
+        // Generate JWT token
+        String jwt = jwtUtils.generateTokenFromUsername(savedUser.getUsername());
+
+        // Create user response
+        UserResponse userResponse = convertToUserResponse(savedUser);
+
+        return new JwtAuthenticationResponse(jwt, userResponse);
+    }
+
+    /**
+     * Register a privileged user (Admin/Manager) - Admin only
+     * This endpoint allows existing admins to create Admin and Manager accounts
+     */
+    public JwtAuthenticationResponse registerAdmin(CreateUserRequest request) {
+        // Check if username already exists
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new ResourceAlreadyExistsException("Username '" + request.getUsername() + "' is already taken");
+        }
+
+        // Check if email already exists
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new ResourceAlreadyExistsException("Email '" + request.getEmail() + "' is already registered");
+        }
+
+        // Validate that only privileged roles are being created through this endpoint
+        if (request.getRole() == null) {
+            throw new BusinessLogicException("Role is required for admin registration");
+        }
+
+        if (request.getRole() != UserRole.ADMIN && request.getRole() != UserRole.MANAGER) {
+            throw new BusinessLogicException("This endpoint is only for creating Admin and Manager accounts. " +
+                "Use regular registration for other roles.");
+        }
+
+        // Create new privileged user
+        User user = new User();
+        user.setFullName(request.getFullName());
+        user.setEmail(request.getEmail());
+        user.setRole(request.getRole()); // Allow Admin/Manager roles
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
