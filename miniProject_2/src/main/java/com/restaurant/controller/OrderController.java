@@ -1,4 +1,4 @@
-package org.restaurant.controllers;
+package org.restaurant.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,7 +7,7 @@ import org.restaurant.dto.request.UpdateOrderStatusRequest;
 import org.restaurant.dto.response.OrderResponse;
 import org.restaurant.dto.response.SuccessResponse;
 import org.restaurant.enums.OrderStatus;
-import org.restaurant.services.OrderService;
+import org.restaurant.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;

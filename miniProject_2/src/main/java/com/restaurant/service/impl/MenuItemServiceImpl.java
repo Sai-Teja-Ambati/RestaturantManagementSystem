@@ -1,9 +1,10 @@
-package org.restaurant.services;
+package org.restaurant.service.impl;
 
 import org.restaurant.entities.MenuItem;
 import org.restaurant.exceptions.ResourceNotFoundException;
 import org.restaurant.exceptions.ResourceAlreadyExistsException;
-import org.restaurant.repositories.MenuItemRepository;
+import org.restaurant.repository.MenuItemRepository;
+import org.restaurant.service.MenuItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +14,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class MenuItemService {
+public class MenuItemServiceImpl implements MenuItemService {
 
     @Autowired
     private MenuItemRepository menuItemRepository;

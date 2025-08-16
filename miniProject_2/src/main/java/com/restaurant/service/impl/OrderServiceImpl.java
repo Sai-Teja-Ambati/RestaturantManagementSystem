@@ -1,4 +1,4 @@
-package org.restaurant.services;
+package org.restaurant.service.impl;
 
 import org.restaurant.dto.request.CreateOrderRequest;
 import org.restaurant.dto.request.UpdateOrderStatusRequest;
@@ -8,9 +8,11 @@ import org.restaurant.enums.OrderStatus;
 import org.restaurant.enums.TableStatus;
 import org.restaurant.exceptions.ResourceNotFoundException;
 import org.restaurant.exceptions.BusinessLogicException;
-import org.restaurant.repositories.OrderRepository;
-import org.restaurant.repositories.MenuItemRepository;
-import org.restaurant.repositories.RestaurantTableRepository;
+import org.restaurant.repository.OrderRepository;
+import org.restaurant.repository.MenuItemRepository;
+import org.restaurant.repository.RestaurantTableRepository;
+import org.restaurant.service.OrderService;
+import org.restaurant.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class OrderService {
+public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderRepository orderRepository;

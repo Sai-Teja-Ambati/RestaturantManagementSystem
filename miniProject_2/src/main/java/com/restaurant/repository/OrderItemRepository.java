@@ -1,4 +1,4 @@
-package org.restaurant.repositories;
+package org.restaurant.repository;
 
 import org.restaurant.entities.OrderItem;
 import org.springframework.data.jpa.repository.JpaRepository;

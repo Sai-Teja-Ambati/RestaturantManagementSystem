@@ -1,11 +1,11 @@
-package org.restaurant.controllers;
+package org.restaurant.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.restaurant.entities.RestaurantTable;
 import org.restaurant.dto.response.SuccessResponse;
 import org.restaurant.enums.TableStatus;
-import org.restaurant.services.RestaurantTableService;
+import org.restaurant.service.RestaurantTableService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

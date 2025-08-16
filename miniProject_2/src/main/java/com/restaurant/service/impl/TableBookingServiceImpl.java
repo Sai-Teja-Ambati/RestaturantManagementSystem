@@ -1,4 +1,4 @@
-package org.restaurant.services;
+package org.restaurant.service.impl;
 
 import org.restaurant.dto.request.CreateBookingRequest;
 import org.restaurant.dto.request.UpdateBookingRequest;
@@ -10,8 +10,10 @@ import org.restaurant.enums.BookingStatus;
 import org.restaurant.enums.TableStatus;
 import org.restaurant.exceptions.ResourceNotFoundException;
 import org.restaurant.exceptions.BusinessLogicException;
-import org.restaurant.repositories.TableBookingRepository;
-import org.restaurant.repositories.RestaurantTableRepository;
+import org.restaurant.repository.TableBookingRepository;
+import org.restaurant.repository.RestaurantTableRepository;
+import org.restaurant.service.TableBookingService;
+import org.restaurant.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class TableBookingService {
+public class TableBookingServiceImpl implements TableBookingService {
 
     @Autowired
     private TableBookingRepository bookingRepository;

@@ -1,4 +1,4 @@
-package org.restaurant.services;
+package org.restaurant.service.impl;
 
 import org.restaurant.dto.request.CreateUserRequest;
 import org.restaurant.dto.response.UserResponse;
@@ -6,7 +6,8 @@ import org.restaurant.entities.User;
 import org.restaurant.enums.UserRole;
 import org.restaurant.exceptions.ResourceAlreadyExistsException;
 import org.restaurant.exceptions.ResourceNotFoundException;
-import org.restaurant.repositories.UserRepository;
+import org.restaurant.repository.UserRepository;
+import org.restaurant.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class UserService {
+public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;

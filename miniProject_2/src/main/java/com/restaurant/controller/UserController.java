@@ -1,4 +1,4 @@
-package org.restaurant.controllers;
+package org.restaurant.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,7 +6,7 @@ import org.restaurant.dto.request.CreateUserRequest;
 import org.restaurant.dto.response.UserResponse;
 import org.restaurant.dto.response.SuccessResponse;
 import org.restaurant.enums.UserRole;
-import org.restaurant.services.UserService;
+import org.restaurant.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

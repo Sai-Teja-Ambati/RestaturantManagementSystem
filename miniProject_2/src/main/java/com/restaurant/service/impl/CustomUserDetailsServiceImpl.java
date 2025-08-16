@@ -1,16 +1,16 @@
-package org.restaurant.services;
+package org.restaurant.service.impl;
 
 import org.restaurant.entities.User;
 import org.restaurant.enums.UserRole;
+import org.restaurant.service.CustomUserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.restaurant.repositories.UserRepository;
+import org.restaurant.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
-public class CustomUserDetailsService implements UserDetailsService {
+public class CustomUserDetailsServiceImpl implements CustomUserDetailsService {
 
     @Autowired
     private UserRepository userRepository;

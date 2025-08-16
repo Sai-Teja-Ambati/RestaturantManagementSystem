@@ -5,9 +5,9 @@ import org.restaurant.entities.RestaurantTable;
 import org.restaurant.entities.User;
 import org.restaurant.enums.TableStatus;
 import org.restaurant.enums.UserRole;
-import org.restaurant.repositories.MenuItemRepository;
-import org.restaurant.repositories.RestaurantTableRepository;
-import org.restaurant.repositories.UserRepository;
+import org.restaurant.repository.MenuItemRepository;
+import org.restaurant.repository.RestaurantTableRepository;
+import org.restaurant.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -100,38 +100,103 @@ public class DataInitializer implements CommandLineRunner {
         // Check if menu items exist
         long menuItemCount = menuItemRepository.count();
         if (menuItemCount == 0) {
-            // Create menu items by category
+            // Create comprehensive Indian menu items by category (prices in USD)
 
-            // Appetizers
-            createMenuItem("Mozzarella Sticks", "Appetizers", new BigDecimal("7.99"));
-            createMenuItem("Bruschetta", "Appetizers", new BigDecimal("6.99"));
-            createMenuItem("Chicken Wings", "Appetizers", new BigDecimal("9.99"));
-            createMenuItem("Loaded Nachos", "Appetizers", new BigDecimal("8.99"));
+            // Veg Starters
+            createMenuItem("Paneer Tikka", "Veg Starters", new BigDecimal("6.99"));
+            createMenuItem("Veg Spring Rolls", "Veg Starters", new BigDecimal("5.99"));
+            createMenuItem("Gobi Manchurian", "Veg Starters", new BigDecimal("5.49"));
+            createMenuItem("Hara Bhara Kebab", "Veg Starters", new BigDecimal("6.49"));
+            createMenuItem("Aloo Tikki", "Veg Starters", new BigDecimal("4.99"));
+            createMenuItem("Crispy Corn", "Veg Starters", new BigDecimal("5.49"));
+            createMenuItem("Veg Seekh Kebab", "Veg Starters", new BigDecimal("6.49"));
+            createMenuItem("Samosa Chaat", "Veg Starters", new BigDecimal("4.49"));
 
-            // Main Courses
-            createMenuItem("Spaghetti Bolognese", "Main Courses", new BigDecimal("14.99"));
-            createMenuItem("Grilled Salmon", "Main Courses", new BigDecimal("18.99"));
-            createMenuItem("Chicken Parmesan", "Main Courses", new BigDecimal("16.99"));
-            createMenuItem("Beef Burger", "Main Courses", new BigDecimal("13.99"));
-            createMenuItem("Vegetable Stir Fry", "Main Courses", new BigDecimal("12.99"));
+            // Non-Veg Starters
+            createMenuItem("Chicken Tikka", "Non-Veg Starters", new BigDecimal("7.99"));
+            createMenuItem("Fish Amritsari", "Non-Veg Starters", new BigDecimal("8.99"));
+            createMenuItem("Mutton Seekh Kebab", "Non-Veg Starters", new BigDecimal("9.49"));
+            createMenuItem("Chicken 65", "Non-Veg Starters", new BigDecimal("7.49"));
+            createMenuItem("Tandoori Prawns", "Non-Veg Starters", new BigDecimal("10.00"));
+            createMenuItem("Chilli Chicken", "Non-Veg Starters", new BigDecimal("7.99"));
+            createMenuItem("Drums of Heaven", "Non-Veg Starters", new BigDecimal("8.49"));
+            createMenuItem("Tandoori Wings", "Non-Veg Starters", new BigDecimal("7.49"));
 
-            // Pizzas
-            createMenuItem("Margherita Pizza", "Pizzas", new BigDecimal("11.99"));
-            createMenuItem("Pepperoni Pizza", "Pizzas", new BigDecimal("13.99"));
-            createMenuItem("Vegetarian Pizza", "Pizzas", new BigDecimal("12.99"));
+            // Indian Breads
+            createMenuItem("Naan", "Indian Breads", new BigDecimal("2.99"));
+            createMenuItem("Butter Naan", "Indian Breads", new BigDecimal("3.49"));
+            createMenuItem("Garlic Naan", "Indian Breads", new BigDecimal("3.99"));
+            createMenuItem("Roti", "Indian Breads", new BigDecimal("1.99"));
+            createMenuItem("Butter Roti", "Indian Breads", new BigDecimal("2.49"));
+            createMenuItem("Paratha", "Indian Breads", new BigDecimal("2.99"));
+            createMenuItem("Kulcha", "Indian Breads", new BigDecimal("3.49"));
+            createMenuItem("Cheese Naan", "Indian Breads", new BigDecimal("4.49"));
+
+            // Veg Gravies
+            createMenuItem("Paneer Butter Masala", "Veg Gravies", new BigDecimal("6.99"));
+            createMenuItem("Malai Kofta", "Veg Gravies", new BigDecimal("7.49"));
+            createMenuItem("Palak Paneer", "Veg Gravies", new BigDecimal("6.49"));
+            createMenuItem("Dal Makhani", "Veg Gravies", new BigDecimal("5.99"));
+            createMenuItem("Kadai Paneer", "Veg Gravies", new BigDecimal("6.99"));
+            createMenuItem("Chana Masala", "Veg Gravies", new BigDecimal("5.49"));
+            createMenuItem("Veg Kolhapuri", "Veg Gravies", new BigDecimal("6.49"));
+            createMenuItem("Aloo Gobi", "Veg Gravies", new BigDecimal("4.99"));
+
+            // Non-Veg Gravies
+            createMenuItem("Butter Chicken", "Non-Veg Gravies", new BigDecimal("8.99"));
+            createMenuItem("Chicken Curry", "Non-Veg Gravies", new BigDecimal("7.99"));
+            createMenuItem("Mutton Rogan Josh", "Non-Veg Gravies", new BigDecimal("9.99"));
+            createMenuItem("Chicken Tikka Masala", "Non-Veg Gravies", new BigDecimal("8.49"));
+            createMenuItem("Fish Curry", "Non-Veg Gravies", new BigDecimal("8.99"));
+            createMenuItem("Prawn Masala", "Non-Veg Gravies", new BigDecimal("10.00"));
+            createMenuItem("Chicken Korma", "Non-Veg Gravies", new BigDecimal("8.99"));
+            createMenuItem("Lamb Vindaloo", "Non-Veg Gravies", new BigDecimal("9.49"));
+
+            // Biryanis
+            createMenuItem("Chicken Biryani", "Biryanis", new BigDecimal("7.99"));
+            createMenuItem("Mutton Biryani", "Biryanis", new BigDecimal("9.49"));
+            createMenuItem("Veg Biryani", "Biryanis", new BigDecimal("6.99"));
+            createMenuItem("Prawn Biryani", "Biryanis", new BigDecimal("9.99"));
+            createMenuItem("Egg Biryani", "Biryanis", new BigDecimal("7.49"));
+            createMenuItem("Hyderabadi Biryani", "Biryanis", new BigDecimal("8.99"));
+            createMenuItem("Lucknowi Biryani", "Biryanis", new BigDecimal("9.49"));
+            createMenuItem("Jackfruit Biryani", "Biryanis", new BigDecimal("7.49"));
+
+            // Fried Rice & Noodles
+            createMenuItem("Veg Fried Rice", "Fried Rice & Noodles", new BigDecimal("5.49"));
+            createMenuItem("Chicken Fried Rice", "Fried Rice & Noodles", new BigDecimal("6.99"));
+            createMenuItem("Schezwan Fried Rice", "Fried Rice & Noodles", new BigDecimal("5.99"));
+            createMenuItem("Hakka Noodles", "Fried Rice & Noodles", new BigDecimal("5.49"));
+            createMenuItem("Singapore Noodles", "Fried Rice & Noodles", new BigDecimal("5.99"));
+            createMenuItem("Chilli Garlic Noodles", "Fried Rice & Noodles", new BigDecimal("5.49"));
+            createMenuItem("Triple Schezwan Rice", "Fried Rice & Noodles", new BigDecimal("7.49"));
+            createMenuItem("Paneer Fried Rice", "Fried Rice & Noodles", new BigDecimal("6.49"));
 
             // Desserts
-            createMenuItem("Tiramisu", "Desserts", new BigDecimal("6.99"));
-            createMenuItem("Chocolate Cake", "Desserts", new BigDecimal("5.99"));
-            createMenuItem("Ice Cream", "Desserts", new BigDecimal("4.99"));
+            createMenuItem("Gulab Jamun", "Desserts", new BigDecimal("3.99"));
+            createMenuItem("Rasmalai", "Desserts", new BigDecimal("4.49"));
+            createMenuItem("Kulfi", "Desserts", new BigDecimal("3.49"));
+            createMenuItem("Ice Cream", "Desserts", new BigDecimal("2.99"));
+            createMenuItem("Gajar Ka Halwa", "Desserts", new BigDecimal("4.49"));
+            createMenuItem("Jalebi", "Desserts", new BigDecimal("3.49"));
+            createMenuItem("Kheer", "Desserts", new BigDecimal("3.99"));
+            createMenuItem("Ras Gulla", "Desserts", new BigDecimal("3.99"));
 
             // Beverages
-            createMenuItem("Soft Drink", "Beverages", new BigDecimal("2.99"));
-            createMenuItem("Iced Tea", "Beverages", new BigDecimal("2.99"));
-            createMenuItem("Coffee", "Beverages", new BigDecimal("2.99"));
-            createMenuItem("Water", "Beverages", new BigDecimal("1.99"));
+            createMenuItem("Coca Cola", "Beverages", new BigDecimal("2.99"));
+            createMenuItem("Pepsi", "Beverages", new BigDecimal("2.99"));
+            createMenuItem("Sprite", "Beverages", new BigDecimal("2.99"));
+            createMenuItem("Fanta", "Beverages", new BigDecimal("2.99"));
+            createMenuItem("Water Bottle", "Beverages", new BigDecimal("1.00"));
+            createMenuItem("Sparkling Water", "Beverages", new BigDecimal("2.49"));
+            createMenuItem("Fresh Lime Soda", "Beverages", new BigDecimal("3.49"));
+            createMenuItem("Mango Lassi", "Beverages", new BigDecimal("4.99"));
+            createMenuItem("Sweet Lassi", "Beverages", new BigDecimal("4.49"));
+            createMenuItem("Masala Chai", "Beverages", new BigDecimal("2.99"));
+            createMenuItem("Filter Coffee", "Beverages", new BigDecimal("2.99"));
+            createMenuItem("Fresh Orange Juice", "Beverages", new BigDecimal("4.99"));
 
-            System.out.println("Created default menu items across multiple categories.");
+            System.out.println("Created comprehensive Indian menu items with beverages across multiple categories.");
         } else {
             System.out.println("Menu items already exist in the database. Skipping menu initialization.");
         }

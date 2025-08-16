@@ -1,4 +1,4 @@
-package org.restaurant.repositories;
+package org.restaurant.repository;
 
 import org.restaurant.entities.TableBooking;
 import org.restaurant.enums.BookingStatus;

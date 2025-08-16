@@ -1,10 +1,11 @@
-package org.restaurant.services;
+package org.restaurant.service.impl;
 
 import org.restaurant.entities.RestaurantTable;
 import org.restaurant.enums.TableStatus;
 import org.restaurant.exceptions.ResourceNotFoundException;
 import org.restaurant.exceptions.BusinessLogicException;
-import org.restaurant.repositories.RestaurantTableRepository;
+import org.restaurant.repository.RestaurantTableRepository;
+import org.restaurant.service.RestaurantTableService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +14,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class RestaurantTableService {
+public class RestaurantTableServiceImpl implements RestaurantTableService {
 
     @Autowired
     private RestaurantTableRepository tableRepository;
@@ -198,13 +199,13 @@ public class RestaurantTableService {
      * Get table statistics
      */
     @Transactional(readOnly = true)
-    public TableStatistics getTableStatistics() {
+    public RestaurantTableService.TableStatistics getTableStatistics() {
         long totalTables = tableRepository.count();
         long availableTables = tableRepository.countByStatus(TableStatus.AVAILABLE);
         long occupiedTables = tableRepository.countByStatus(TableStatus.OCCUPIED);
         long reservedTables = tableRepository.countByStatus(TableStatus.RESERVED);
 
-        return new TableStatistics(totalTables, availableTables, occupiedTables, reservedTables);
+        return new RestaurantTableService.TableStatistics((int)totalTables, (int)availableTables, (int)reservedTables, (int)occupiedTables);
     }
 
     /**
@@ -231,31 +232,5 @@ public class RestaurantTableService {
         return tableRepository.findAllAvailableTablesOrderByCapacity();
     }
 
-    // Inner class for table statistics
-    public static class TableStatistics {
-        private final long totalTables;
-        private final long availableTables;
-        private final long occupiedTables;
-        private final long reservedTables;
 
-        public TableStatistics(long totalTables, long availableTables, long occupiedTables, long reservedTables) {
-            this.totalTables = totalTables;
-            this.availableTables = availableTables;
-            this.occupiedTables = occupiedTables;
-            this.reservedTables = reservedTables;
-        }
-
-        public long getTotalTables() { return totalTables; }
-        public long getAvailableTables() { return availableTables; }
-        public long getOccupiedTables() { return occupiedTables; }
-        public long getReservedTables() { return reservedTables; }
-
-        public double getOccupancyRate() {
-            return totalTables > 0 ? (double) occupiedTables / totalTables * 100 : 0;
-        }
-
-        public double getAvailabilityRate() {
-            return totalTables > 0 ? (double) availableTables / totalTables * 100 : 0;
-        }
-    }
 }
