@@ -1,296 +1,252 @@
 # Restaurant Management System
 
-A comprehensive Spring Boot backend application for restaurant management with JWT authentication.
+Comprehensive restaurant backend system managing orders, inventory, table bookings, and user roles with robust authentication and authorization.
+
+---
+
+## 🚀 Quick Start with Docker
+
+### Prerequisites
+- Docker and Docker Compose installed (or Rancher Desktop)
+- Git installed
+
+### Initial Setup and Build
+For the **first-time build** or if you want to rebuild images, run:
+
+```docker-compose --profile migrations up --build```
+
+
+This command builds Docker images, launches PostgreSQL, runs database migrations, and starts the backend app.
+
+### Starting Containers (No Rebuild)
+For **subsequent runs** without the need to rebuild images, simply run:
+
+```docker-compose --profile migrations up```
+
+
+### Stopping Containers
+Gracefully stop all running containers:
+
+```docker-compose down```
+
+
+### Stopping and Cleaning Up
+To stop running containers **and remove associated volumes and orphaned containers**, run:
+
+```docker-compose down -v --remove-orphans```
+
+
+---
+
+# README
+
+## Restaurant Management System
+
+A fully featured backend system for restaurant management enabling secure, role-based control over users, orders, inventory, tables, and bookings.
+
+### Table of Contents
+- [Installation](#installation)
+- [Usage](#usage)
+- [System Architecture](#system-architecture)
+- [Features](#features)
+- [Database Structure](#database-structure)
+- [Workflow](#workflow)
+- [Sequence Diagrams](#sequence-diagrams)
+- [Technical Specifications](#technical-specifications)
+- [Project Structure](#project-structure)
+
+---
+
+## Installation
+
+### Requirements
+- Rancher Desktop or Docker Desktop for container management
+- Git version control
+- Java 17 or later for local builds (optional if using Docker)
+- PostgreSQL 13+ (handled automatically in Docker)
+- Maven 3.6+ (optional if using Docker)
+
+### Setup Steps
+1. Clone the repository:
+```git clone git@github.com:Sai-Teja-Ambati/RestaurantManagementSystem.git```
+
+
+2. Setup database credentials in `application.properties` or environment variables as needed.
+
+3. Build and run:
+- For first-time build with migrations:
+  ```
+  docker-compose --profile migrations up --build
+  ```
+- For restarting containers without rebuild:
+  ```
+  docker-compose --profile migrations up
+  ```
+
+4. Access the backend REST API at:
+
+```http://localhost:8080/```
+
+
+---
+
+## Usage
+
+### Default Accounts
+
+| Role    | Username            | Password   |
+|---------|---------------------|------------|
+| Admin   | admin@example.com   | admin123   |
+| Waiter  | waiter1@example.com | waiter123  |
+| Customer| customer@example.com| customer123|
+
+### Roles and Permissions
+
+- **Admin:** Full access including user management, inventory, and analytics.
+- **Manager:** Limited administrative functions.
+- **Waiter:** Manage orders, tables, and reservations.
+- **Customer:** Browse menu, place orders, book tables.
+
+---
+
+## System Architecture
+
+- **Controller Layer:** Exposes REST API endpoints secured by Spring Security.
+- **Service Layer:** Encapsulates business logic for authentication, user, order, table, and booking management.
+- **Repository Layer:** Interfaces with PostgreSQL via Spring Data JPA.
+- **Security:** JWT-based stateless authentication with role-based authorization.
+- **Validation and Exception Handling:** Bean validation with custom exceptions and global handlers.
+- **Transaction Management:** Ensures data integrity in multi-step operations.
+
+---
 
 ## Features
 
-### Authentication & Authorization
-- JWT-based authentication
-- Role-based access control (Admin, Waiter, Customer)
-- Secure password encryption with BCrypt
+- **Authentication & Authorization**
+- JWT token issuance and validation
+- Role-restricted endpoint access
+- User registration with role validation
 
-### Customer Features
-- View menu with categories and prices
-- Book tables for specific time slots
-- Place orders (dine-in or takeaway)
-- View order history and reservation history
-- Real-time order status tracking
+- **User Management**
+- CRUD operations for users by Admin
+- User role assignment and checks
 
-### Waiter Features
-- View all tables and their status (vacant/occupied/served)
-- Manage table occupancy and service status
-- View and update order status
-- Manage reservations
-- Serve tables and mark them as completed
+- **Menu Management**
+- Add, update, delete menu items & categories
+- Search and filter by price and category
 
-### Admin Features
-- Complete inventory management
-- Restore inventory from files
-- View low stock and out-of-stock items
-- User management (view all users by role)
-- Order analytics and reporting
-- Table management
-- Dashboard with key statistics
+- **Order Processing**
+- Order creation with item and quantity validation
+- Status transitions (Placed → InKitchen → Served)
+- Billing calculations and inventory updates
 
-### Core Functionality
-- **Menu Management**: Dynamic menu with recipes and pricing
-- **Order Processing**: Complete order lifecycle with inventory deduction
-- **Table Management**: Real-time table availability and booking
-- **Inventory Tracking**: Automatic ingredient deduction based on recipes
-- **Reservation System**: Time-slot based table reservations
+- **Table Management**
+- Create, update, remove tables
+- Track table statuses: Available, Occupied, Reserved
+- Find best fit table for required capacity
 
-## Technology Stack
+- **Reservation System**
+- Time-slot based table bookings with conflict checks
+- Update and cancel bookings with effects on table status
 
-- **Framework**: Spring Boot 3.2.0
-- **Security**: Spring Security with JWT
-- **Database**: PostgreSQL (with JPA/Hibernate)
-- **Database Migrations**: Flyway 9.22.3
-- **Authentication**: JWT tokens
-- **Validation**: Bean Validation
-- **Code Generation**: Lombok
-- **Testing**: JUnit 5, H2 (for tests)
+- **Inventory Management**
+- Fetch current inventory and auto-update after orders
+- Restore inventory from saved files
+- Alert on low and out-of-stock items
 
-## Database Setup
+- **Analytics and Reporting**
+- Order statistics, inventory levels, and usage patterns
+- Dashboard accessible to Admin users
 
-The application uses **Flyway** for database migrations to ensure consistent database schema across environments:
+---
 
-- **V1**: Creates users table with roles and authentication
-- **V2**: Creates restaurant tables with capacity and status
-- **V3**: Creates orders table with JSONB items and billing
-- **V4**: Creates table reservations with time slots
-- **V5**: Creates order-tables junction table
-- **V6**: Creates inventory items with quantity tracking
-- **V7**: Inserts default users (admin, waiters, customer)
+## Database Structure
 
-All database schema changes are version-controlled and automatically applied during startup.
+- **Users:** Holds user details and their role.
+- **MenuItems:** Catalog of menu dishes with pricing.
+- **Orders:** Track customer orders and status.
+- **OrderItems:** Join orders with ordered menu items.
+- **RestaurantTables:** Details including capacity and status.
+- **TableReservations:** Records for booking and reservation management.
+- **InventoryItems:** Tracks ingredient quantities.
 
-## 🚀 Quick Start
+---
 
-### Prerequisites
-- Docker and Docker Compose installed
-- Java 17+ (for local development)
-- Maven 3.6+ (for local development)
+## Workflow Overview
 
-### Running with Docker
+### User Authentication
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd RestaurantManagementSystem/miniProject_2
-   ```
+1. User submits login credentials.
+2. System authenticates and returns JWT token if valid.
+3. Role-based menu and API access is enforced using token claims.
 
-2. **Start the application**
-   ```bash
-   docker-compose up --build
-   ```
+### Order Lifecycle
 
-   This will:
-   - Start PostgreSQL database
-   - Run Flyway 9.22.3-alpine migrations to set up the database schema
-   - Start the Spring Boot application
+1. Waiter creates new order assigned to a table.
+2. Items are added with quantity and availability checks.
+3. Inventory quantities decrease as order progresses.
+4. Order moves through statuses (Placed → In Kitchen → Served).
+5. Table status updates accordingly.
 
-3. **Access the application**
-   - API: http://localhost:8080
-   - Health Check: http://localhost:8080/actuator/health
+### Table Booking Flow
 
-### Configuration Files
-- **application.properties**: Main configuration with development settings
-- **application-docker.properties**: Docker-specific configuration with optimized logging
-- **Flyway migrations**: Located in `src/main/resources/db/migration/`
+1. Customer requests a booking for a table at a specific time.
+2. System verifies availability without conflicts.
+3. Booking stored; table status updated if booking is current.
+4. Bookings can be modified or cancelled respecting time constraints.
 
-### Stopping the application
-```bash
-docker-compose down
-```
+---
 
-### Clean restart (if needed)
-```bash
-docker-compose down -v
-docker-compose up --build
-```
+## Sequence Diagrams
 
-- **Containerization**: Docker & Docker Compose
+- **Admin:** Manages inventory, users, and views analytics.
+- **Waiter:** Creates and manages orders, updates table status.
+- **Customer:** Browses menu, places orders, books tables.
+
+*See diagrams in `docs/sequences/` folder in the repository.*
+
+---
+
+## Technical Specifications
+
+- **Framework:** Spring Boot 3.x
+- **Security:** Spring Security with JWT
+- **Database:** PostgreSQL 13+
+- **Build:** Maven 3.6+
+- **Containerization:** Docker and Docker Compose
+- **Testing:** JUnit 5 with H2 for in-memory tests
+
+---
 
 ## Project Structure
 
-```
-src/main/java/com/restaurant/
-├── config/          # Configuration classes
-├── controller/      # REST Controllers
-├── dto/            # Data Transfer Objects
-├── entity/         # JPA Entities
-├── exception/      # Exception handling
-├── repository/     # JPA Repositories
-├── security/       # Security configuration
-├── service/        # Business logic
-└── util/           # Utility classes
-
-src/main/resources/
-├── application.yml
-├── CurrentInventory.txt
-└── InitialInventory.txt
-```
-
-## Database Schema
-
-### Core Entities
-- **User**: Authentication and user management
-- **RestaurantTable**: Table management with capacity
-- **Order**: Order processing with JSON items
-- **TableReservation**: Time-based table bookings
-- **InventoryItem**: Ingredient tracking
-- **OrderTable**: Many-to-many relationship between orders and tables
-
-### Relationships
-- User (1) → (N) Orders
-- User (1) → (N) TableReservations
-- RestaurantTable (1) → (N) TableReservations
-- RestaurantTable (1) → (N) OrderTables
-- Order (1) → (N) OrderTables
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-
-### Customer APIs
-- `GET /api/customer/menu` - View menu
-- `GET /api/customer/tables/available` - View available tables
-- `POST /api/customer/reservations` - Book table
-- `GET /api/customer/reservations` - View my reservations
-- `POST /api/customer/orders` - Place order
-- `GET /api/customer/orders` - View my orders
-
-### Waiter APIs
-- `GET /api/waiter/tables` - View all tables
-- `GET /api/waiter/tables/vacant` - View vacant tables
-- `POST /api/waiter/tables/{tableNumber}/serve` - Mark table as served
-- `POST /api/waiter/tables/{tableNumber}/occupy` - Mark table as occupied
-- `POST /api/waiter/tables/{tableNumber}/free` - Free table
-- `GET /api/waiter/orders/active` - View active orders
-- `PUT /api/waiter/orders/{orderId}/status` - Update order status
-
-### Admin APIs
-- `GET /api/admin/inventory` - View all inventory
-- `GET /api/admin/inventory/low-stock` - View low stock items
-- `POST /api/admin/inventory/restore` - Restore inventory from file
-- `PUT /api/admin/inventory/{itemName}/quantity` - Update inventory quantity
-- `GET /api/admin/users` - View all users
-- `GET /api/admin/dashboard/stats` - Dashboard statistics
-
-## Setup Instructions
-
-### Prerequisites
-- Java 17 or higher
-- Maven 3.6+
-- PostgreSQL 12+
-
-### Database Setup
-1. Create PostgreSQL database:
-```sql
-CREATE DATABASE restaurant_db;
+```declarative
+RestaurantManagementSystem/
+├── docker-compose.yml # Docker orchestration
+├── Dockerfile # Docker image build
+├── pom.xml # Maven dependencies and build config
+├── README.md # Project documentation
+├── src/
+│ ├── main/
+│ │ ├── java/
+│ │ │ └── com/restaurant/ # Java source code by package
+│ │ └── resources/
+│ │ ├── application.properties # Main config
+│ │ ├── db/migration/ # Flyway migration scripts
+│ │ └── seed-data/ # Initial data files
+└── tests/ # Tests and test resources
 ```
 
-2. Update `application.yml` with your database credentials:
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/restaurant_db
-    username: your_username
-    password: your_password
-```
 
-### Running the Application
+For detailed class diagrams, REST API specifications, and workflow charts, please refer to the `docs/` directory in the repository.
 
-1. Clone the repository
-2. Navigate to the project directory
-3. Run the application:
-```bash
-mvn spring-boot:run
-```
+---
 
-The application will start on `http://localhost:8080`
+## Contribution & Support
 
-### Default Users
-The application creates default users on startup:
-- **Admin**: username=`admin`, password=`admin123`
-- **Waiters**: username=`waiter1-5`, password=`waiter123`
-- **Customer**: username=`customer1`, password=`customer123`
+Please open issues or submit pull requests on GitHub to contribute or report problems:  
+[https://github.com/Sai-Teja-Ambati/RestaurantManagementSystem](https://github.com/Sai-Teja-Ambati/RestaurantManagementSystem)
 
-## Testing
+---
 
-Run tests with:
-```bash
-mvn test
-```
-
-## Key Features Implementation
-
-### JWT Authentication
-- Secure token-based authentication
-- Role-based access control
-- Token expiration handling
-
-### Inventory Management
-- Automatic ingredient deduction based on recipes
-- Low stock alerts
-- File-based inventory restoration
-
-### Order Processing
-- Real-time inventory validation
-- Automatic tax and service charge calculation
-- Order status tracking
-
-### Table Management
-- Real-time availability checking
-- Time-slot based reservations
-- Conflict prevention
-
-### Exception Handling
-- Global exception handler
-- Validation error responses
-- Proper HTTP status codes
-
-## Recipe System
-
-The application includes a comprehensive recipe system with:
-- 50+ predefined recipes
-- Ingredient-based inventory deduction
-- Menu categorization with pricing
-- Automatic availability checking
-
-## File Structure
-
-### Inventory Files
-- `CurrentInventory.txt`: Current stock levels
-- `InitialInventory.txt`: Default stock levels for restoration
-
-Both files follow the format:
-```
-Item Name - Quantity
-```
-
-## Security Features
-
-- Password encryption with BCrypt
-- JWT token validation
-- Role-based endpoint protection
-- CORS configuration
-- Authentication entry point handling
-
-## Error Handling
-
-Comprehensive error handling with:
-- Global exception handler
-- Validation error responses
-- Custom error messages
-- Proper HTTP status codes
-
-## Future Enhancements
-
-- Payment integration
-- Real-time notifications
-- Advanced reporting
-- Mobile app support
-- Multi-restaurant support
+**Thank you for using the Restaurant Management System!**  
