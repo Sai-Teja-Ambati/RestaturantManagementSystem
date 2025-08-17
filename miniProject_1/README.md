@@ -334,6 +334,6 @@ RestaurantManagementSystem/
 ## GitHub Repository
 
 The complete source code for this project is available at:
-[https://github.com/your-username/RestaurantManagementSystem](https://github.com/your-username/RestaurantManagementSystem)
+[https://github.com/Sai-Teja-Ambati/RestaurantManagementSystem](https://github.com/your-username/RestaurantManagementSystem)
 
 Please refer to the repository for the latest updates and full codebase.
