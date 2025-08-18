@@ -1,300 +1,196 @@
-# Restaurant Management System API - cURL Commands
+# Restaurant Management System API Documentation
 
-This document contains cURL commands for all available API endpoints in the Restaurant Management System.
+This document contains curl examples for all endpoints in the Restaurant Management System API.
 
-## Base URL
-```
-http://localhost:8080
-```
+## Table of Contents
+- [Authentication](#authentication)
+- [Users](#users)
+- [Menu](#menu)
+- [Orders](#orders)
+- [Tables](#tables)
+- [Bookings](#bookings)
 
 ## Authentication
 
-Most endpoints require authentication. First, login to get a JWT token:
-
-### Login
+### Health Check
 ```bash
-curl -X POST http://localhost:8080/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "admin",
-    "password": "password"
-  }'
+curl -X GET http://localhost:8080/api/auth/health
 ```
 
-### Register New User
-**Note**: Public registration is restricted to non-privileged roles only (CUSTOMER, WAITER, CHEF). Admin and Manager accounts must be created by existing administrators.
-
+### Register a New User
 ```bash
-# Register as Customer (default)
-curl -X POST http://localhost:8080/auth/register \
+curl -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "fullName": "John Doe",
-    "email": "john@example.com",
+    "email": "john.doe@example.com",
     "role": "CUSTOMER",
     "username": "johndoe",
     "password": "password123"
   }'
-
-# Register as Waiter
-curl -X POST http://localhost:8080/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "fullName": "Jane Smith",
-    "email": "jane@example.com",
-    "role": "WAITER",
-    "username": "janesmith",
-    "password": "password123"
-  }'
-
-# Register as Chef
-curl -X POST http://localhost:8080/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "fullName": "Mike Johnson",
-    "email": "mike@example.com",
-    "role": "CHEF",
-    "username": "mikejohnson",
-    "password": "password123"
-  }'
-
-# ❌ This will FAIL - Cannot register as Admin
-curl -X POST http://localhost:8080/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "fullName": "Hacker",
-    "email": "hacker@example.com",
-    "role": "ADMIN",
-    "username": "hacker",
-    "password": "password123"
-  }'
-# Returns: "Cannot register with privileged role 'ADMIN'. Admin and Manager accounts must be created by existing administrators."
 ```
 
-### Register Admin/Manager (Admin Only)
-**Note**: This endpoint allows existing admins to create privileged accounts (Admin/Manager roles only).
-
+### Login
 ```bash
-# Register new Admin account (Admin only)
-curl -X POST http://localhost:8080/auth/register-admin \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "fullName": "New Admin",
-    "email": "newadmin@example.com",
-    "role": "ADMIN",
-    "username": "newadmin",
-    "password": "securepassword123"
-  }'
-
-# Register new Manager account (Admin only)
-curl -X POST http://localhost:8080/auth/register-admin \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "fullName": "New Manager",
-    "email": "newmanager@example.com",
-    "role": "MANAGER",
-    "username": "newmanager",
-    "password": "securepassword123"
-  }'
-
-# ❌ This will FAIL - Cannot use this endpoint for non-privileged roles
-curl -X POST http://localhost:8080/auth/register-admin \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "fullName": "Regular User",
-    "email": "user@example.com",
-    "role": "WAITER",
-    "username": "regularuser",
+    "username": "johndoe",
     "password": "password123"
   }'
-# Returns: "This endpoint is only for creating Admin and Manager accounts. Use regular registration for other roles."
-```
-
-### Get Current User Profile
-```bash
-curl -X GET http://localhost:8080/auth/me \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
 ### Refresh Token
 ```bash
-curl -X POST http://localhost:8080/auth/refresh \
+curl -X POST http://localhost:8080/api/auth/refresh \
   -H "Content-Type: application/json" \
   -d '{
     "refreshToken": "YOUR_REFRESH_TOKEN"
   }'
 ```
 
+### Get Current User Profile
+```bash
+curl -X GET http://localhost:8080/api/auth/me \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
 ### Change Password
 ```bash
-curl -X PUT http://localhost:8080/auth/change-password \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+curl -X PUT http://localhost:8080/api/auth/change-password \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
-    "currentPassword": "oldpassword",
-    "newPassword": "newpassword"
+    "currentPassword": "password123",
+    "newPassword": "newpassword123"
   }'
 ```
 
-### Reset Password (Admin Only)
+### Reset User Password (Admin only)
 ```bash
-curl -X PUT http://localhost:8080/auth/reset-password/1 \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+curl -X PUT http://localhost:8080/api/auth/reset-password/1 \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
-    "newPassword": "newpassword123"
+    "newPassword": "resetpassword123"
   }'
 ```
 
 ### Logout
 ```bash
-curl -X POST http://localhost:8080/auth/logout \
+curl -X POST http://localhost:8080/api/auth/logout \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Role Check Endpoints
+### Check if Current User is Admin
 ```bash
-# Check if current user is admin
-curl -X GET http://localhost:8080/auth/is-admin \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-
-# Check if current user is manager
-curl -X GET http://localhost:8080/auth/is-manager \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-
-# Check if current user is waiter
-curl -X GET http://localhost:8080/auth/is-waiter \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-
-# Check if current user is chef
-curl -X GET http://localhost:8080/auth/is-chef \
+curl -X GET http://localhost:8080/api/auth/is-admin \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Health Check
+### Check if Current User is Manager
 ```bash
-curl -X GET http://localhost:8080/auth/health
+curl -X GET http://localhost:8080/api/auth/is-manager \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
----
-
-## User Management
-
-### Create User (Admin Only)
-**Note**: This is the ONLY way to create Admin and Manager accounts. Public registration cannot create privileged roles.
-
+### Check if Current User is Waiter
 ```bash
-# Create Admin account (Admin only)
-curl -X POST http://localhost:8080/users \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "fullName": "System Admin",
-    "email": "admin@example.com",
-    "role": "ADMIN",
-    "username": "systemadmin",
-    "password": "securepassword123"
-  }'
+curl -X GET http://localhost:8080/api/auth/is-waiter \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
 
-# Create Manager account (Admin only)
-curl -X POST http://localhost:8080/users \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "fullName": "Restaurant Manager",
-    "email": "manager@example.com",
-    "role": "MANAGER",
-    "username": "manager",
-    "password": "securepassword123"
-  }'
+### Check if Current User is Chef
+```bash
+curl -X GET http://localhost:8080/api/auth/is-chef \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
 
-# Create other roles (Admin only)
-curl -X POST http://localhost:8080/users \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+## Users
+
+### Create a New User (Admin only)
+```bash
+curl -X POST http://localhost:8080/api/users \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
     "fullName": "Jane Smith",
-    "email": "jane@example.com",
+    "email": "jane.smith@example.com",
     "role": "CHEF",
     "username": "janesmith",
     "password": "password123"
   }'
 ```
 
-### Get All Users
+### Get All Users (Admin or Manager)
 ```bash
-curl -X GET http://localhost:8080/users \
+curl -X GET http://localhost:8080/api/users \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get User by ID
+### Get User by ID (Admin or Manager)
 ```bash
-curl -X GET http://localhost:8080/users/1 \
+curl -X GET http://localhost:8080/api/users/1 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Update User
+### Update User (Admin or Manager)
 ```bash
-curl -X PUT http://localhost:8080/users/1 \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+curl -X PUT http://localhost:8080/api/users/1 \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
     "fullName": "Jane Smith Updated",
     "email": "jane.updated@example.com",
-    "role": "MANAGER",
+    "role": "CHEF",
     "username": "janesmith",
-    "password": "newpassword123"
+    "password": "password123"
   }'
 ```
 
-### Delete User (Admin Only)
+### Delete User (Admin only)
 ```bash
-curl -X DELETE http://localhost:8080/users/1 \
+curl -X DELETE http://localhost:8080/api/users/1 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Users by Role
+### Get Users by Role (Admin or Manager)
 ```bash
-curl -X GET http://localhost:8080/users/role/WAITER \
+curl -X GET http://localhost:8080/api/users/role/WAITER \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get All Waiters
+### Get All Waiters (Admin, Manager, or Chef)
 ```bash
-curl -X GET http://localhost:8080/users/waiters \
+curl -X GET http://localhost:8080/api/users/waiters \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get All Chefs
+### Get All Chefs (Admin, Manager, or Chef)
 ```bash
-curl -X GET http://localhost:8080/users/chefs \
+curl -X GET http://localhost:8080/api/users/chefs \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get All Managers
+### Get All Managers (Admin only)
 ```bash
-curl -X GET http://localhost:8080/users/managers \
+curl -X GET http://localhost:8080/api/users/managers \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Check if User Exists
+### Check if User Exists (Admin or Manager)
 ```bash
-curl -X GET http://localhost:8080/users/1/exists \
+curl -X GET http://localhost:8080/api/users/1/exists \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
----
+## Menu
 
-## Menu Management
-
-### Create Menu Item
+### Create a New Menu Item (Admin or Manager)
 ```bash
-curl -X POST http://localhost:8080/menu \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+curl -X POST http://localhost:8080/api/menu \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
     "name": "Margherita Pizza",
     "category": "Pizza",
@@ -302,495 +198,330 @@ curl -X POST http://localhost:8080/menu \
   }'
 ```
 
-### Get All Menu Items
+### Get All Menu Items (Admin, Manager, or Waiter)
 ```bash
-curl -X GET http://localhost:8080/menu \
+curl -X GET http://localhost:8080/api/menu \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Menu Item by ID
+### Get Menu Item by ID (Admin, Manager, or Waiter)
 ```bash
-curl -X GET http://localhost:8080/menu/1 \
+curl -X GET http://localhost:8080/api/menu/1 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Update Menu Item
+### Update Menu Item (Admin or Manager)
 ```bash
-curl -X PUT http://localhost:8080/menu/1 \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+curl -X PUT http://localhost:8080/api/menu/1 \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
-    "name": "Margherita Pizza Deluxe",
+    "name": "Margherita Pizza",
     "category": "Pizza",
-    "price": 15.99
+    "price": 14.99
   }'
 ```
 
-### Delete Menu Item (Admin Only)
+### Delete Menu Item (Admin only)
 ```bash
-curl -X DELETE http://localhost:8080/menu/1 \
+curl -X DELETE http://localhost:8080/api/menu/1 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Menu Items by Category
+### Get Menu Items by Category (Admin, Manager, or Waiter)
 ```bash
-curl -X GET http://localhost:8080/menu/category/Pizza \
+curl -X GET http://localhost:8080/api/menu/category/Pizza \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get All Categories
+### Get All Categories (Admin, Manager, or Waiter)
 ```bash
-curl -X GET http://localhost:8080/menu/categories \
+curl -X GET http://localhost:8080/api/menu/categories \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Search Menu Items
+### Search Menu Items (Admin, Manager, or Waiter)
 ```bash
-# Search by name
-curl -X GET "http://localhost:8080/menu/search?name=Pizza" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-
-# Search by category
-curl -X GET "http://localhost:8080/menu/search?category=Appetizer" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-
-# Search by name and category
-curl -X GET "http://localhost:8080/menu/search?name=Pizza&category=Pizza" \
+curl -X GET "http://localhost:8080/api/menu/search?name=Pizza&category=Italian" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Menu Items by Price Range
+### Get Menu Items by Price Range (Admin, Manager, or Waiter)
 ```bash
-curl -X GET "http://localhost:8080/menu/price-range?min=10.00&max=20.00" \
+curl -X GET "http://localhost:8080/api/menu/price-range?min=10.00&max=20.00" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Menu Items Under Price
+### Get Menu Items Under Price (Admin, Manager, or Waiter)
 ```bash
-curl -X GET http://localhost:8080/menu/under-price/15.00 \
+curl -X GET http://localhost:8080/api/menu/under-price/15.00 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Menu Items by Category Ordered by Price
+## Orders
+
+### Create a New Order (Admin, Manager, or Waiter)
 ```bash
-curl -X GET http://localhost:8080/menu/category/Pizza/ordered \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Check if Menu Item Exists
-```bash
-curl -X GET http://localhost:8080/menu/1/exists \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
----
-
-## Table Management
-
-### Create Table
-```bash
-curl -X POST http://localhost:8080/tables \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+curl -X POST http://localhost:8080/api/orders \
   -H "Content-Type: application/json" \
-  -d '{
-    "capacity": 4
-  }'
-```
-
-### Get All Tables
-```bash
-curl -X GET http://localhost:8080/tables \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Get Table by ID
-```bash
-curl -X GET http://localhost:8080/tables/1 \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Update Table Capacity
-```bash
-curl -X PUT http://localhost:8080/tables/1/capacity \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "capacity": 6
-  }'
-```
-
-### Update Table Status
-```bash
-curl -X PUT http://localhost:8080/tables/1/status \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "status": "OCCUPIED"
-  }'
-```
-
-### Mark Table as Reserved
-```bash
-curl -X PUT http://localhost:8080/tables/1/reserve \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Mark Table as Occupied
-```bash
-curl -X PUT http://localhost:8080/tables/1/occupy \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Mark Table as Available
-```bash
-curl -X PUT http://localhost:8080/tables/1/free \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Delete Table (Admin Only)
-```bash
-curl -X DELETE http://localhost:8080/tables/1 \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Get Tables by Status
-```bash
-curl -X GET http://localhost:8080/tables/status/AVAILABLE \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Get Available Tables
-```bash
-curl -X GET http://localhost:8080/tables/available \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Get Reserved Tables
-```bash
-curl -X GET http://localhost:8080/tables/reserved \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Get Occupied Tables
-```bash
-curl -X GET http://localhost:8080/tables/occupied \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Get Tables by Capacity
-```bash
-curl -X GET http://localhost:8080/tables/capacity/4 \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Get Tables with Minimum Capacity
-```bash
-curl -X GET http://localhost:8080/tables/min-capacity/4 \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Get Available Tables with Minimum Capacity
-```bash
-curl -X GET http://localhost:8080/tables/available/min-capacity/4 \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Find Best Available Table
-```bash
-curl -X GET http://localhost:8080/tables/best-available/4 \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Get Table Statistics
-```bash
-curl -X GET http://localhost:8080/tables/statistics \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Get Tables by Capacity Range
-```bash
-curl -X GET "http://localhost:8080/tables/capacity-range?min=2&max=6" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Get Available Tables Ordered by Capacity
-```bash
-curl -X GET http://localhost:8080/tables/available/ordered \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
----
-
-## Order Management
-
-### Create Order
-```bash
-curl -X POST http://localhost:8080/orders \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
   -d '{
     "tableNumber": 1,
+    "waiterId": 2,
     "items": [
       {
         "menuItemId": 1,
         "quantity": 2
       },
       {
-        "menuItemId": 2,
+        "menuItemId": 3,
         "quantity": 1
       }
-    ]
+    ],
+    "specialInstructions": "No onions on the pizza"
   }'
 ```
 
-### Get All Orders
+### Get All Orders (Admin, Manager, Waiter, or Chef)
 ```bash
-curl -X GET http://localhost:8080/orders \
+curl -X GET http://localhost:8080/api/orders \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Order by ID
+### Get Order by ID (Admin, Manager, Waiter, or Chef)
 ```bash
-curl -X GET http://localhost:8080/orders/1 \
+curl -X GET http://localhost:8080/api/orders/1 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Update Order Status
+### Update Order Status (Admin, Manager, Waiter, or Chef)
 ```bash
-curl -X PUT http://localhost:8080/orders/1 \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+curl -X PUT http://localhost:8080/api/orders/1 \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
-    "status": "IN_KITCHEN"
+    "status": "READY"
   }'
 ```
 
-### Get Orders by Table Number
+### Get Orders by Table Number (Admin, Manager, Waiter, or Chef)
 ```bash
-curl -X GET http://localhost:8080/orders/table/1 \
+curl -X GET http://localhost:8080/api/orders/table/1 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Orders by Status
+### Get Orders by Status (Admin, Manager, Waiter, or Chef)
 ```bash
-curl -X GET http://localhost:8080/orders/status/PLACED \
+curl -X GET http://localhost:8080/api/orders/status/PLACED \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Orders by Waiter ID
+### Get Orders by Waiter ID (Admin, Manager, or specific Waiter)
 ```bash
-curl -X GET http://localhost:8080/orders/waiter/1 \
+curl -X GET http://localhost:8080/api/orders/waiter/2 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Current User's Orders
+### Get Current User's Orders (Authenticated User)
 ```bash
-curl -X GET http://localhost:8080/orders/my-orders \
+curl -X GET http://localhost:8080/api/orders/my-orders \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Orders by Date
+### Get Orders by Date (Admin, Manager, Waiter, or Chef)
 ```bash
-curl -X GET http://localhost:8080/orders/date/2024-08-16T00:00:00 \
+curl -X GET http://localhost:8080/api/orders/date/2025-08-14T00:00:00 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Kitchen Orders
+### Get Kitchen Orders (Admin, Manager, Waiter, or Chef)
 ```bash
-curl -X GET http://localhost:8080/orders/kitchen \
+curl -X GET http://localhost:8080/api/orders/kitchen \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Move Order to Kitchen
+### Move Order to Kitchen (Admin, Manager, or Waiter)
 ```bash
-curl -X PUT http://localhost:8080/orders/1/kitchen \
+curl -X PUT http://localhost:8080/api/orders/1/kitchen \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Mark Order as Served
+### Mark Order as Served (Admin, Manager, Waiter, or Chef)
 ```bash
-curl -X PUT http://localhost:8080/orders/1/served \
+curl -X PUT http://localhost:8080/api/orders/1/served \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Cancel Order
+### Cancel Order (Admin, Manager, or Waiter)
 ```bash
-curl -X DELETE http://localhost:8080/orders/1 \
+curl -X DELETE http://localhost:8080/api/orders/1 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Today's Orders
+### Get Today's Orders (Admin, Manager, Waiter, or Chef)
 ```bash
-curl -X GET http://localhost:8080/orders/today \
+curl -X GET http://localhost:8080/api/orders/today \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Placed Orders
+## Tables
+
+### Create a New Table (Admin or Manager)
 ```bash
-curl -X GET http://localhost:8080/orders/placed \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Get In-Kitchen Orders
-```bash
-curl -X GET http://localhost:8080/orders/in-kitchen \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Get Served Orders
-```bash
-curl -X GET http://localhost:8080/orders/served \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
----
-
-## Booking Management
-
-### Create Booking
-```bash
-curl -X POST http://localhost:8080/bookings \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+curl -X POST http://localhost:8080/api/tables \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
-    "customerName": "John Smith",
-    "bookingTime": "2024-08-20T19:00:00",
+    "capacity": 4
+  }'
+```
+
+### Get All Tables (Admin, Manager, or Waiter)
+```bash
+curl -X GET http://localhost:8080/api/tables \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Get Table by ID (Admin, Manager, or Waiter)
+```bash
+curl -X GET http://localhost:8080/api/tables/1 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Update Table Capacity (Admin or Manager)
+```bash
+curl -X PUT http://localhost:8080/api/tables/1/capacity \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{
+    "capacity": 6
+  }'
+```
+
+### Update Table Status (Admin or Manager)
+```bash
+curl -X PUT http://localhost:8080/api/tables/1/status \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{
+    "status": "OCCUPIED"
+  }'
+```
+
+### Mark Table as Reserved (Admin, Manager, or Waiter)
+```bash
+curl -X PUT http://localhost:8080/api/tables/1/reserve \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Get Reserved Tables (Admin, Manager, or Waiter)
+```bash
+curl -X GET http://localhost:8080/api/tables/reserved \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Delete Table (Admin only)
+```bash
+curl -X DELETE http://localhost:8080/api/tables/1 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Get Tables by Status (Admin, Manager, or Waiter)
+```bash
+curl -X GET http://localhost:8080/api/tables/status/AVAILABLE \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Get Available Tables (Admin, Manager, or Waiter)
+```bash
+curl -X GET http://localhost:8080/api/tables/available \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+## Bookings
+
+### Create a New Booking (Admin, Manager, or Waiter)
+```bash
+curl -X POST http://localhost:8080/api/bookings \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{
+    "customerName": "Alice Johnson",
+    "customerPhone": "+1234567890",
+    "customerEmail": "alice@example.com",
     "tableNumber": 1,
-    "numberOfGuests": 4
+    "partySize": 4,
+    "bookingTime": "2025-08-15T19:00:00",
+    "specialRequests": "Window table preferred"
   }'
 ```
 
-### Get All Bookings
+### Get All Bookings (Admin, Manager, or Waiter)
 ```bash
-curl -X GET http://localhost:8080/bookings \
+curl -X GET http://localhost:8080/api/bookings \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Booking by ID
+### Get Booking by ID (Admin, Manager, or Waiter)
 ```bash
-curl -X GET http://localhost:8080/bookings/1 \
+curl -X GET http://localhost:8080/api/bookings/1 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Update Booking
+### Update Booking (Admin, Manager, or Waiter)
 ```bash
-curl -X PUT http://localhost:8080/bookings/1 \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+curl -X PUT http://localhost:8080/api/bookings/1 \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
-    "customerName": "John Smith Updated",
-    "bookingTime": "2024-08-20T20:00:00",
+    "customerName": "Alice Johnson",
+    "customerPhone": "+1234567890",
+    "customerEmail": "alice@example.com",
     "tableNumber": 2,
-    "numberOfGuests": 6
+    "partySize": 5,
+    "bookingTime": "2025-08-15T20:00:00",
+    "specialRequests": "Window table preferred"
   }'
 ```
 
-### Cancel Booking
+### Cancel Booking (Admin or Manager)
 ```bash
-curl -X DELETE http://localhost:8080/bookings/1 \
+curl -X DELETE http://localhost:8080/api/bookings/1 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Delete Booking Permanently (Admin Only)
+### Delete Booking Permanently (Admin only)
 ```bash
-curl -X DELETE http://localhost:8080/bookings/1/permanent \
+curl -X DELETE http://localhost:8080/api/bookings/1/permanent \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Bookings by Date
+### Get Bookings by Date (Admin, Manager, or Waiter)
 ```bash
-curl -X GET http://localhost:8080/bookings/date/2024-08-20T00:00:00 \
+curl -X GET http://localhost:8080/api/bookings/date/2025-08-15T00:00:00 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Bookings by Table Number
+### Get Bookings by Table Number (Admin, Manager, or Waiter)
 ```bash
-curl -X GET http://localhost:8080/bookings/table/1 \
+curl -X GET http://localhost:8080/api/bookings/table/1 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Bookings by Status
+### Get Bookings by Status (Admin, Manager, or Waiter)
 ```bash
-curl -X GET http://localhost:8080/bookings/status/RESERVED \
+curl -X GET http://localhost:8080/api/bookings/status/CONFIRMED \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Complete Booking
+### Mark Booking as Completed (Admin, Manager, or Waiter)
 ```bash
-curl -X PUT http://localhost:8080/bookings/1/complete \
+curl -X PUT http://localhost:8080/api/bookings/1/complete \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### Get Today's Bookings
+### Get Today's Bookings (Admin, Manager, or Waiter)
 ```bash
-curl -X GET http://localhost:8080/bookings/today \
+curl -X GET http://localhost:8080/api/bookings/today \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
-
-### Get Active Bookings
-```bash
-curl -X GET http://localhost:8080/bookings/active \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Get Upcoming Bookings
-```bash
-curl -X GET http://localhost:8080/bookings/upcoming \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
----
-
-## Notes
-
-1. **Replace `YOUR_JWT_TOKEN`** with the actual JWT token received from the login endpoint.
-2. **Date Format**: Use ISO 8601 format for dates: `YYYY-MM-DDTHH:MM:SS`
-3. **Roles**: Available roles are `ADMIN`, `MANAGER`, `WAITER`, `CHEF`, `CUSTOMER`
-4. **Table Status**: Available statuses are `AVAILABLE`, `RESERVED`, `OCCUPIED`
-5. **Order Status**: Available statuses are `PLACED`, `IN_KITCHEN`, `SERVED`
-6. **Booking Status**: Available statuses are `RESERVED`, `CANCELLED`, `COMPLETED`
-7. **Privileged Account Creation**: 
-   - Regular users can register as `CUSTOMER`, `WAITER`, or `CHEF` via `/auth/register`
-   - Only existing admins can create `ADMIN` or `MANAGER` accounts via `/auth/register-admin`
-   - Alternatively, admins can use `/users` endpoint to create any role
-
-## Example Workflow
-
-1. **Login as Admin**:
-   ```bash
-   curl -X POST http://localhost:8080/auth/login \
-     -H "Content-Type: application/json" \
-     -d '{"username": "admin", "password": "password"}'
-   ```
-
-2. **Create a Menu Item**:
-   ```bash
-   curl -X POST http://localhost:8080/menu \
-     -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{"name": "Caesar Salad", "category": "Salad", "price": 8.99}'
-   ```
-
-3. **Create a Table**:
-   ```bash
-   curl -X POST http://localhost:8080/tables \
-     -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{"capacity": 4}'
-   ```
-
-4. **Create an Order**:
-   ```bash
-   curl -X POST http://localhost:8080/orders \
-     -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{"tableNumber": 1, "items": [{"menuItemId": 1, "quantity": 2}]}'
-   ```
-
-5. **Create a Booking**:
-   ```bash
-   curl -X POST http://localhost:8080/bookings \
-     -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{"customerName": "Alice Johnson", "bookingTime": "2024-08-20T19:00:00", "tableNumber": 1, "numberOfGuests": 2}'
-   ```
